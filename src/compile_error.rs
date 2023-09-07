@@ -1,15 +1,26 @@
-pub struct CompileError;
+#[derive(Debug)]
+pub struct CompileError {
+    pub origin: &'static str,
+    pub msg: &'static str,
+}
 
 impl CompileError {
-    pub fn throw(msg: &str) {
-        panic!("{msg}");
+    pub const fn new(origin: &'static str, msg: &'static str) -> Self {
+        Self {
+            origin,
+            msg,
+        }
+    }
+
+    pub fn throw(error: &CompileError) {
+        panic!("{error:#?}");
     }
 }
 
 macro_rules! compile_error {
-    (($id:ident) $msg:literal) => {{
+    (($id:ident) $origin:literal: $msg:literal) => {{
         impl CompileError {
-            pub const $id: &'static str = $msg;
+            pub const $id: CompileError = CompileError::new($origin, $msg);
         }
 
         compile_error!($id)
