@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct CompileError {
     pub origin: &'static str,
     pub msg: &'static str,
@@ -27,6 +27,6 @@ macro_rules! compile_error {
     }};
 
     ($id:ident) => {
-        CompileError::throw(CompileError::$id)
+        CompileError::$id
     }
 }

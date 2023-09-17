@@ -1,30 +1,52 @@
-use std::{rc::Rc, cell::RefCell};
+use crate::compile_error::CompileError;
 use super::*;
 
-/// Flexer Context
-#[derive(Debug)]
-pub struct Flext<T: Token>(Rc<RefCell<Vec<T>>>);
-
-impl<T: Token> Flext<T> {
-    #[inline]
-    pub fn new() -> Self {
-        Self(Rc::new(RefCell::new(Vec::new())))
-    }
-
-    pub fn parse(&self, token: T) {
-        self.0.borrow_mut().push(token);
-    }
+pub struct Flext<'a, Frag: Token<'a>, Out: Token<'a>> {
+    idx: u16,
+    constructors: Vec<Constructor<'a, Frag, Out>>,
+    tok_stream: &'a RefCell<Vec<Out>>,
+    err_stream: &'a RefCell<Vec<Out>>,
+    failures: Vec<CompileError>,
 }
 
-impl<T: Token> Clone for Flext<T> {
-    fn clone(&self) -> Self {
-        Self(self.0.clone())
+impl<'a, Frag: Token<'a>, Out: Token<'a, Frag = Frag>> Flext<'a, Frag, Out> {
+    pub fn new(idx: u16, flexer: &'a Flexer<'a, Frag, Out>) -> Self {
+        Self {
+            idx,
+            tok_stream: &flexer.tok_stream,
+            failures: Vec::new(),
+            constructors: flexer.constructors
+                .iter()
+                .map(|x| x.to_ref())
+                .collect(),
+        }
     }
-}
 
-impl<T: Token> Default for Flext<T> {
-    #[inline]
-    fn default() -> Self {
-        Self::new()
+    pub fn parse(mut self, frag: &'a Frag) -> FlextResult<'a, Frag, Out> {
+        let mut constructors = Vec::<Constructor<'a, Frag, Out>>::new();
+        
+        self.constructors.into_iter()
+            .map(|x| x.construct(frag))
+            .for_each(|r| 
+                match r {
+                    TokParseRes::Done(x) => self.tok_stream.borrow_mut()[self.idx as usize] = x, // Takes the most complex token (change to push for all)
+                    TokParseRes::Continue(x) => constructors.push(x),
+                    TokParseRes::Failed(x) => self.failures.push(x),
+                }
+            );
+
+        if constructors.is_empty() {
+            if self.failures.is_empty() { FlextResult::Done }
+            else { FlextResult::Failed(self.failures[0]) } // Use simplest error instead of most complex
+        } else {
+            FlextResult::Continue(
+                Self {
+                    idx: self.idx,
+                    tok_stream: self.tok_stream,
+                    failures: Vec::new(),
+                    constructors,
+                }
+            )
+        }
     }
 }
