@@ -20,6 +20,6 @@ macro_rules! compilerr_fmt {
     };
 
     (($len:literal) $($str:literal),*) => {
-        $crate::compile_error::compile_error_format::CompileErrFormatter::<$len>([$($str),*])
+        $crate::compile_error::compile_error_format::CompileErrFormatter::<{$len+1}>([$($str),*])
     };
 }

@@ -1,5 +1,6 @@
 pub mod compile_error_format;
 pub mod compile_error_macro;
+pub mod compile_errors;
 pub use compile_error_format::*;
 pub use crate::compilerr_fmt;
 pub use crate::compile_error;
@@ -9,7 +10,7 @@ use crate::cursor::Position;
 
 #[derive(Clone, Debug)]
 pub struct CompileError {
-    pub origin: &'static str,
+    pub error_type: &'static str,
     pub msg: String,
     pub position: Position,
 }
@@ -17,7 +18,7 @@ pub struct CompileError {
 impl CompileError {
     #[inline]
     pub fn new(origin: &'static str, msg: String, position: Position) -> Self {
-        CompileError { origin, msg, position }
+        CompileError { error_type: origin, msg, position }
     }
 
     pub fn throw(error: &CompileError) {
@@ -35,15 +36,15 @@ impl Display for CompileError {
 }
 
 pub struct CompileErrorTemplate<const N: usize> {
-    pub origin: &'static str,
+    pub error_type: &'static str,
     pub fmt: CompileErrFormatter<N>,
 }
 
 impl<const N: usize> CompileErrorTemplate<N> {
     #[inline]
-    pub const fn new(origin: &'static str, fmt: CompileErrFormatter<N>) -> Self {
+    pub const fn new(error_type: &'static str, fmt: CompileErrFormatter<N>) -> Self {
         Self {
-            origin,
+            error_type,
             fmt,
         }
     }
