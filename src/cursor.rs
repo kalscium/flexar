@@ -1,8 +1,11 @@
 use std::{ops::Range, rc::Rc};
 
+/// A full position of a string of characters in a file
+pub type Position = (Cursor, Cursor);
+
 /// Tracks the position of a character in a file
-#[derive(Clone)]
-pub struct Position {
+#[derive(Clone, Debug)]
+pub struct Cursor {
     pub file_name: String,
     file_contents: Rc<FileContents>,
     pub abs_idx: u16,
@@ -10,7 +13,7 @@ pub struct Position {
     pub ln_idx: u16,
 }
 
-impl Position {
+impl Cursor {
     pub fn new(file_name: String, contents: String) -> Self {
         Self {
             file_name,
@@ -20,23 +23,6 @@ impl Position {
             ln_idx: 1,
         }
     }
-
-    // /// For the flexer
-    // pub fn advance(&mut self) -> Option<char> {
-    //     match self.file_contents.get(self) {
-    //         Some(x) => {
-    //             self.ln_idx += 1;
-    //             self.abs_idx += 1;
-    //             return Some(x);
-    //         },
-    //         None => (),
-    //     };
-
-    //     // Try to increase line number to see if that helps
-    //     let mut position = self.clone();
-    //     position.ln += 1;
-    //     position.ln_idx = 1;
-    // }
 
     pub fn get_to<'a>(&'a self, other: &'a Self) -> Option<(&'a str, Range<usize>)> {
         // if reversed, reverse it again to not cause any errors
@@ -49,13 +35,14 @@ impl Position {
     }
 
     #[inline]
-    pub fn get_ln<'a>(&'a self) -> Option<&'a str> {
+    pub fn get_ln(&self) -> Option<&'_ str> {
         self.file_contents.0
             .get(self.ln as usize -1) // line starts at one instead of zero
             .map(|x| x.as_ref())
     }
 }
 
+#[derive(Debug)]
 pub struct FileContents(pub Box<[Box<str>]>);
 
 impl FileContents {
