@@ -11,6 +11,7 @@ use crate::cursor::Position;
 
 #[derive(Clone, Debug)]
 pub struct CompileError {
+    pub id: &'static str,
     pub error_type: &'static str,
     pub msg: String,
     pub position: Position,
@@ -18,12 +19,12 @@ pub struct CompileError {
 
 impl CompileError {
     #[inline]
-    pub fn new(origin: &'static str, msg: String, position: Position) -> Self {
-        CompileError { error_type: origin, msg, position }
+    pub fn new(id: &'static str, error_type: &'static str, msg: String, position: Position) -> Self {
+        CompileError { id, error_type, msg, position }
     }
 
-    pub fn throw(error: &CompileError) {
-        println!("{}", error);
+    pub fn throw(&self) {
+        println!("{}", self);
         std::process::exit(1);
     }
 }

@@ -1,6 +1,7 @@
 use crate::compile_error;
 
 compile_error! {
+[Define]
 
 [Lexer]
     /// Occurs whenever there is an unexpected character (unknown symbol) while tokenizing a file
