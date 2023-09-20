@@ -1,11 +1,12 @@
 pub mod compile_error_format;
 pub mod compile_error_macro;
 pub mod compile_errors;
+pub mod compile_error_display;
 pub use compile_error_format::*;
 pub use crate::compilerr_fmt;
 pub use crate::compile_error;
 
-use std::{error::Error, fmt::{self, Display}};
+use std::error::Error;
 use crate::cursor::Position;
 
 #[derive(Clone, Debug)]
@@ -28,12 +29,6 @@ impl CompileError {
 }
 
 impl Error for CompileError {}
-
-impl Display for CompileError {
-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!(); // write some nice compile error display code
-    }
-}
 
 pub struct CompileErrorTemplate<const N: usize> {
     pub error_type: &'static str,
