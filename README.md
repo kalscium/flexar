@@ -1,2 +1,2 @@
-# matcha
- A fast memory-safe non-garbage-collected multi-threaded programming langauge.
+# flexar
+An extremely flexible lexer/parser (get it?) for writing your own programming language

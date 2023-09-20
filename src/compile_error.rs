@@ -1,6 +1,5 @@
 pub mod compile_error_format;
 pub mod compile_error_macro;
-pub mod compile_errors;
 pub mod compile_error_display;
 pub use compile_error_format::*;
 pub use crate::compilerr_fmt;
