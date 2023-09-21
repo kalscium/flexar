@@ -1,3 +1,19 @@
+/// Defines or throws a compile error
+/// 
+/// ## Error Example
+/// ```rust
+/// flexar::compile_error! {
+///     [[Define]]
+/// 
+///     [Errors]
+///     /// An example error
+///     (E001) "example error type": "examle error msg";
+///     /// Invalid character error
+///     (E002) "invalid character": ((1) "character `", "` is invalid");
+/// }
+/// ```
+/// ## Throwing Example
+/// `flexar::compile_error!((E002, position), '$')`
 #[macro_export]
 macro_rules! compile_error {
     (($id:ident, $pos:expr) $($arg:expr),*) => {{
@@ -10,13 +26,13 @@ macro_rules! compile_error {
     );* $(;)?) => {
         pub trait CompileErrors {
             $(
-                compile_error!(@trait $(#[$about])* $id $msg);
+                $crate::compile_error!(@trait $(#[$about])* $id $msg);
             )*
         }
 
         impl CompileErrors for $crate::compile_error::CompileError {
             $(
-                compile_error!(@impl $(#[$about])* $id $error_type $msg);
+                $crate::compile_error!(@impl $(#[$about])* $id $error_type $msg);
             )*
         }
     };
