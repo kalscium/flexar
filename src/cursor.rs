@@ -2,41 +2,19 @@ use std::rc::Rc;
 
 /// A full position of a string of characters in a file
 #[derive(Debug, Clone)]
-pub enum Position {
-    Single(Rc<Cursor>),
-    Mul(Rc<Cursor>, Rc<Cursor>),
-}
+pub struct Position(pub Rc<Cursor>, pub Rc<Cursor>);
 
 impl From<Cursor> for Position {
-    #[inline]
     fn from(cursor: Cursor) -> Self {
-        Self::Single(Rc::new(cursor))
+        let cursor = Rc::new(cursor);
+        Self(cursor.clone(), cursor)
     }
 }
 
 impl Position {
-    /// Creates a new position from two cursors, if you want a single one then use `cursor.into()`
-    #[inline]
-    pub fn new(start: Cursor, end: Cursor) -> Self {
-        Self::Mul(Rc::new(start), Rc::new(end))
-    }
-
-    /// Grabs the starting position
-    #[inline]
-    pub fn start(&self) -> &Cursor {
-        match self {
-            Self::Single(x) => x,
-            Self::Mul(x, _) => x,
-        }
-    }
-
-    /// Grabs the end position
-    #[inline]
-    pub fn end(&self) -> &Cursor {
-        match self {
-            Self::Single(x) => x,
-            Self::Mul(_, x) => x,
-        }
+    /// Spawns a child of the position; so that the child starts at the last cursor of this position
+    pub fn spawn(&self) -> Self {
+        Self(self.1.clone(), self.1.clone())
     }
 }
 
