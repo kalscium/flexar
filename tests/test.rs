@@ -1,4 +1,4 @@
-use flexar::{cursor::{Position, MutCursor}, compile_error, flexar};
+use flexar::{cursor::{Position, MutCursor, Cursor}, compiler_error, flexar};
 use std::str::FromStr;
 
 pub struct Number(Position, u64);
@@ -13,24 +13,34 @@ flexar! {
             value.push(flext.current.unwrap());
             flext.advance();
         } else (flext.current.is_none()) {
-            compile_error!((E001, flext.position.position()) flext.current.unwrap())
+            compiler_error!((E001, flext.cursor.position()) flext.current.unwrap())
         });
-        ok (Self(flext.position.position(), u64::from_str(&value).unwrap()));
+        ok (Self(flext.cursor.position(), u64::from_str(&value).unwrap()));
     }
 }
 
-compile_error! {
+compiler_error! {
     [[Define]]
     (E001) "invalid number": ((1) "expected number not `", "`");
 }
 
 pub struct Flext {
-    pub position: MutCursor,
+    pub cursor: MutCursor,
     pub current: Option<char>,
 }
 
 impl Flext {
+    pub fn new(file_name: String, contents: &str) -> Self {
+        let cursor = MutCursor::new(Cursor::new(file_name, contents));
+        let current = cursor.pos_end.get_char();
+        Self {
+            cursor,
+            current,
+        }
+    }
+
     pub fn advance(&mut self) {
-        self.current = self.position.pos_end.get_char();
+        self.cursor.advance();
+        self.current = self.cursor.current_char;
     }
 }

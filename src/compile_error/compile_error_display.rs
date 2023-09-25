@@ -54,7 +54,7 @@ fn sample(line: &str, start_idx: u16, end_idx: u16, msg: &str, multi_line: bool)
 
 #[inline]
 fn cal_trim(actual: u16, desired: u16) -> u16 {
-    let dif = actual - desired;
+    let dif = actual.saturating_sub(desired);
     if dif > LINE_LIMIT as u16 { dif - LINE_LIMIT as u16 + 3 } // accounts for the `...`
     else { 0 }
 }
@@ -63,14 +63,14 @@ fn cal_trim(actual: u16, desired: u16) -> u16 {
 fn gen_arrw(start_idx: u16, end_idx: u16, msg: &str, start_trim: u16, offset: u16) -> String {
     let spaces_since_start = if start_trim > 0 {
         start_idx - start_trim + 2 // acounts for the `...` and padding
-    } else { 0 };
+    } else { start_idx -1 };
 
     let inbetween = end_idx - start_idx + 1 + offset; // even if it's the same character you still need a pointer
 
     let mut out = " ".repeat(spaces_since_start as usize);
     out.push_str(&"^".repeat(inbetween as usize));
     out.push(' ');
-    out.push_str(msg);
+    out.push_str(&msg.replace('\n', "\x1b[36m\\n\x1b[31m"));
     
     out
 }

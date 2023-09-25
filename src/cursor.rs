@@ -70,7 +70,7 @@ pub struct Cursor {
 }
 
 impl Cursor {
-    pub fn new(file_name: String, contents: String) -> Self {
+    pub fn new(file_name: String, contents: &str) -> Self {
         Self {
             file_name: Rc::new(file_name),
             file_contents: Rc::new(FileContents::new(contents)),
@@ -103,14 +103,18 @@ impl Cursor {
     }
 
     pub fn advance(&mut self) -> Option<char> {
-        // for errors
-        self.ln_idx += 1; 
-        self.abs_idx += 1;
+        if self.ln_idx as usize == self.get_ln().unwrap().len() { // still have to return end of line
+            self.ln_idx += 1; return Some('\n');
+        }
 
         if self.ln_idx as usize > self.get_ln().unwrap().len() { // if reached end of line
             if self.ln as usize == self.file_contents.0.len() { return None; } // if reached last line
+            self.abs_idx += 1;
             self.ln += 1;
             self.ln_idx = 1;
+        } else {
+            self.abs_idx += 1;
+            self.ln_idx += 1;
         }
 
         self.get_char()
@@ -122,7 +126,7 @@ pub struct FileContents(pub Box<[Box<str>]>);
 
 impl FileContents {
     #[inline]
-    pub fn new(contents: String) -> Self {
+    pub fn new(contents: &str) -> Self {
         Self(contents.split('\n').map(|x| x.into()).collect())
     }
 }

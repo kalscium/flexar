@@ -6,7 +6,7 @@ impl<const N: usize> CompileErrFormatter<N> {
 
         let mut first = true;
         for (i, x) in self.0.iter().enumerate() {
-            if !first { string.push_str(&inputs[i]) }
+            if !first { string.push_str(&inputs[i-1]) }
             else { first = false }
             string.push_str(x);
         } string

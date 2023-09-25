@@ -2,7 +2,7 @@
 /// 
 /// ## Error Example
 /// ```rust
-/// flexar::compile_error! {
+/// flexar::compiler_error! {
 ///     [[Define]]
 /// 
 ///     [Errors]
@@ -15,7 +15,7 @@
 /// ## Throwing Example
 /// `flexar::compile_error!((E002, position), '$')`
 #[macro_export]
-macro_rules! compile_error {
+macro_rules! compiler_error {
     (($id:ident, $pos:expr) $($arg:expr),*) => {{
         $crate::compile_error::CompileError::new(stringify!($id), $crate::compile_error::CompileError::$id.error_type, $crate::compile_error::CompileError::$id.fmt.format(&[$($arg.to_string()),*]), $pos)
     }};
@@ -26,13 +26,13 @@ macro_rules! compile_error {
     );* $(;)?) => {
         pub trait CompileErrors {
             $(
-                $crate::compile_error!(@trait $(#[$about])* $id $msg);
+                $crate::compiler_error!(@trait $(#[$about])* $id $msg);
             )*
         }
 
         impl CompileErrors for $crate::compile_error::CompileError {
             $(
-                $crate::compile_error!(@impl $(#[$about])* $id $error_type $msg);
+                $crate::compiler_error!(@impl $(#[$about])* $id $error_type $msg);
             )*
         }
     };
