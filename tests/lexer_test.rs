@@ -30,7 +30,7 @@ flexar::lexer! {
     RParen: ')';
     Dot: .;
     Colon: :;
-    [" \n\t"] >> ({ flext.advance(); continue 'cycle; });
+    [" \n\t"] >> ({ flext.advance(); flext = flext.spawn(); continue 'cycle; });
 
     // `=` stuff
     EEE: (= = =);

@@ -33,7 +33,7 @@
 ///    RParen: ')';
 ///    Dot: .;
 ///    Colon: :;
-///    [" \n\t"] >> ({ flext.advance(); continue 'cycle; });
+///    [" \n\t"] >> ({ flext.advance(); flext = flext.spawn(); continue 'cycle; });
 ///
 ///    // `=` stuff
 ///    EEE: (= = =);
@@ -70,7 +70,6 @@
 ///             };
 ///             {if !matched {break 'number}};
 ///         };
-///         { println!("{number}") };
 ///         if (dot) { done Float(number.parse().unwrap()); };
 ///         done Int(number.parse().unwrap());
 ///     };
