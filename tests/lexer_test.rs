@@ -1,6 +1,4 @@
-use flexar::compiler_error;
-
-compiler_error! {
+flexar::compiler_error! {
     [[Define]]
     (E001) "invalid character": ((1) "`", "` is an invalid character");
     (E002) "string not closed": "expected `\"` to close string";
@@ -24,7 +22,7 @@ pub enum Lexer {
 
 flexar::lexer! {
     [[Lexer] flext: Flext, current, 'cycle]
-    else compiler_error!((E001, flext.cursor.position()) current).throw();
+    else flexar::compiler_error!((E001, flext.cursor.position()) current).throw();
 
     Slash: /;
     Plus: +;

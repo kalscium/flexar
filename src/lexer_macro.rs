@@ -1,3 +1,80 @@
+/// Creates a lexer for tokenising a file
+/// # Example
+/// ```rust
+/// flexar::compiler_error! {
+///    [[Define]]
+///    (E001) "invalid character": ((1) "`", "` is an invalid character");
+///    (E002) "string not closed": "expected `\"` to close string";
+/// }
+///
+/// #[derive(Debug, PartialEq)]
+/// pub enum Lexer {
+///    Slash,
+///    Plus,
+///    LParen,
+///    RParen,
+///    EE,
+///    EEE,
+///    EQ,
+///    Dot,
+///    Colon,
+///    Str(String),
+///    Int(u32),
+///    Float(f32),
+/// }
+///
+/// flexar::lexer! {
+///    [[Lexer] flext: Flext, current, 'cycle]
+///    else flexar::compiler_error!((E001, flext.cursor.position()) current).throw();
+///
+///    Slash: /;
+///    Plus: +;
+///    LParen: '(';
+///    RParen: ')';
+///    Dot: .;
+///    Colon: :;
+///    [" \n\t"] >> ({ flext.advance(); continue 'cycle; });
+///
+///    // `=` stuff
+///    EEE: (= = =);
+///    EE: (= =);
+///    EQ: =;
+///    '"' child {
+///        { child.advance() };
+///        set string { String::new() };
+///        rsome current {
+///            ck (current, '"') {
+///               { child.advance() };
+///               done Str(string);
+///           };
+///           { string.push(current) };
+///        };
+///        throw E002(child.cursor.spawn().position());
+///    };
+///    ["0123456789"] child {
+///        set number { String::new() };
+///        set dot false;
+///        rsome (current, 'number) {
+///            set matched false;
+///             ck (current, ["0123456789"]) {
+///                 mut matched true;
+///                 { number.push(current) };
+///             };
+///             ck (current, '.') {
+///                 if (dot) {
+///                     done Float(number.parse().unwrap());
+///                 };
+///                 mut matched true;
+///                 mut dot true;
+///                 { number.push(current) };
+///             };
+///             {if !matched {break 'number}};
+///         };
+///         { println!("{number}") };
+///         if (dot) { done Float(number.parse().unwrap()); };
+///         done Int(number.parse().unwrap());
+///     };
+/// }
 #[macro_export]
 macro_rules! lexer {
     ([[$name:ty] $flext:ident: $flext_type:ident, $current:ident $(, $label:tt)?] else $no_match:expr; $($first:tt$sep:tt$second:tt;)*) => {
@@ -147,7 +224,7 @@ macro_rules! lexer {
     };
 
     (@det $child:ident $flext:ident $label:tt throw $err:ident ($position:expr $(,$spec:tt)?)) => {
-        let _: () = compiler_error!(($err, $position) $($spec)?).throw();
+        let _: () = $crate::compiler_error!(($err, $position) $($spec)?).throw();
     };
 
     (@det $child:ident $flext:ident $label:tt rsome $current:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
