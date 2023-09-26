@@ -24,8 +24,8 @@
 /// }
 ///
 /// flexar::lexer! {
-///    [[Lexer] flext: Flext, current, 'cycle]
-///    else flexar::compiler_error!((E001, flext.cursor.position()) current).throw();
+///    [[Lexer] lext, current, 'cycle]
+///    else flexar::compiler_error!((E001, lext.cursor.position()) current).throw();
 ///
 ///    Slash: /;
 ///    Plus: +;
@@ -33,7 +33,7 @@
 ///    RParen: ')';
 ///    Dot: .;
 ///    Colon: :;
-///    [" \n\t"] >> ({ flext.advance(); flext = flext.spawn(); continue 'cycle; });
+///    [" \n\t"] >> ({ lext.advance(); lext = lext.spawn(); continue 'cycle; });
 ///
 ///    // `=` stuff
 ///    EEE: (= = =);
@@ -76,47 +76,18 @@
 /// }
 #[macro_export]
 macro_rules! lexer {
-    ([[$name:ty] $flext:ident: $flext_type:ident, $current:ident $(, $label:tt)?] else $no_match:expr; $($first:tt$sep:tt$second:tt;)*) => {
-        /// Lexer context for tokenising
-        pub struct $flext_type {
-            pub cursor: $crate::cursor::MutCursor,
-            pub current: Option<char>,
-        }
+    ([[$name:ty] $lext:ident, $current:ident $(, $label:tt)?] else $no_match:expr; $($first:tt$sep:tt$second:tt;)*) => {
         
-        impl $flext_type {
-            pub fn new(file_name: String, contents: &str) -> Self {
-                let cursor = $crate::cursor::MutCursor::new($crate::cursor::Cursor::new(file_name, contents));
-                let $current = cursor.pos_end.get_char();
-                Self {
-                    cursor,
-                    $current,
-                }
-            }
-
-            /// Advances to the next token
-            pub fn advance(&mut self) {
-                self.cursor.advance();
-                self.current = self.cursor.current_char;
-            }
-
-            /// Spawns a child flext
-            pub fn spawn(&self) -> Self {
-                Self {
-                    cursor: self.cursor.spawn(),
-                    current: self.current,
-                }
-            }
-        }
 
         impl $name {
-            pub fn tokenise(mut $flext: $flext_type) -> Box<[$name]> {
+            pub fn tokenise(mut $lext: $crate::lext::Lext) -> Box<[$name]> {
                 let mut tokens = Vec::<Self>::new();
-                $($label:)? while let Some($current) = $flext.current {
+                $($label:)? while let Some($current) = $lext.current {
                     tokens.push('code: {
-                        $($crate::lexer!(@sect $flext 'code $current $first$sep$second);)*
+                        $($crate::lexer!(@sect $lext 'code $current $first$sep$second);)*
                         $no_match
                     });
-                    $flext.cursor.pos_start = $flext.cursor.pos_end.clone(); // cause different tokens with different start pos
+                    $lext.cursor.pos_start = $lext.cursor.pos_end.clone(); // cause different tokens with different start pos
                 } tokens.into_boxed_slice()
             }
         }
@@ -124,32 +95,32 @@ macro_rules! lexer {
 
     // Sections
 
-    (@sect $flext:ident $label:tt $current:ident $out:ident: ($char:tt $($tail:tt)*)) => { // Change to something more efficient if too slow
+    (@sect $lext:ident $label:tt $current:ident $out:ident: ($char:tt $($tail:tt)*)) => { // Change to something more efficient if too slow
         if $crate::lexer!(@value $current $char) {
-            let mut child = $flext.spawn();
+            let mut child = $lext.spawn();
             child.advance();
-            $crate::lexer!(@recur-sect1 $label $out $flext child $($tail)*);
+            $crate::lexer!(@recur-sect1 $label $out $lext child $($tail)*);
         }
     };
 
-    (@sect $flext:ident $label:tt $current:ident $name:ident: $char:tt) => {
+    (@sect $lext:ident $label:tt $current:ident $name:ident: $char:tt) => {
         if $crate::lexer!(@value $current $char) {
-            $flext.advance();
+            $lext.advance();
             break $label Self::$name;
         }
     };
 
-    (@sect $flext:ident $label:tt $current:ident $start:tt $child:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
+    (@sect $lext:ident $label:tt $current:ident $start:tt $child:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
         if $crate::lexer!(@value $current $start) {
-            let mut $child = $flext.spawn();
+            let mut $child = $lext.spawn();
             $(
-                $($crate::lexer!(@det $child $flext $label $key $param $body);)?
+                $($crate::lexer!(@det $child $lext $label $key $param $body);)?
                 $($code;)?
             )*
         }
     };
 
-    (@sect $flext:ident $label:tt $current:ident $char:tt >> ($action:expr)) => {
+    (@sect $lext:ident $label:tt $current:ident $char:tt >> ($action:expr)) => {
         if $crate::lexer!(@value $current $char) {
             $action;
         }
@@ -158,105 +129,105 @@ macro_rules! lexer {
     // Recur
 
         // For section 1
-        (@recur-sect1 $label:tt $out:ident $flext:ident $child:ident $char:tt) => {
+        (@recur-sect1 $label:tt $out:ident $lext:ident $child:ident $char:tt) => {
             if let Some(current) = $child.current {
                 if $crate::lexer!(@value current $char) {
-                    $flext = $child;
-                    $flext.advance();
+                    $lext = $child;
+                    $lext.advance();
                     break $label Self::$out;
                 }
             }
         };
 
-        (@recur-sect1 $label:tt $out:ident $flext:ident $child:ident $char:tt $($tail:tt)*) => {
+        (@recur-sect1 $label:tt $out:ident $lext:ident $child:ident $char:tt $($tail:tt)*) => {
             if let Some(current) = $child.current {
                 if $crate::lexer!(@value current $char) {
                     let mut child = $child.spawn();
                     child.advance();
-                    $crate::lexer!(@recur-sect1 $label $out $flext child $($tail)*);
+                    $crate::lexer!(@recur-sect1 $label $out $lext child $($tail)*);
                 }
             }
         };
 
     // Detailed
 
-    (@det $child:ident $flext:ident $label:tt ck ($current:ident, $val:tt) {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
+    (@det $child:ident $lext:ident $label:tt ck ($current:ident, $val:tt) {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
         if $crate::lexer!(@value $current $val) {
             $(
-                $($crate::lexer!(@det $child $flext $label $key $param $body);)?
+                $($crate::lexer!(@det $child $lext $label $key $param $body);)?
                 $($code;)?
             )*
         }
     };
 
-    (@det $child:ident $flext:ident $label:tt if ($condition:expr) {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
+    (@det $child:ident $lext:ident $label:tt if ($condition:expr) {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
         if $condition {
             $(
-                $($crate::lexer!(@det $child $flext $label $key $param $body);)?
+                $($crate::lexer!(@det $child $lext $label $key $param $body);)?
                 $($code;)?
             )*
         }
     };
 
-    (@det $child:ident $flext:ident $label:tt scope $name:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
+    (@det $child:ident $lext:ident $label:tt scope $name:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
         {
             let mut $name = $child.spawn();
             $name.advance();
             $(
-                $($crate::lexer!(@det $child $flext $label $key $param $body);)?
+                $($crate::lexer!(@det $child $lext $label $key $param $body);)?
                 $($code;)?
             )*
         }
     };
 
-    (@det $child:ident $flext:ident $label:tt done $var:ident ($($spec:expr)?)) => {
-        $flext = $child;
+    (@det $child:ident $lext:ident $label:tt done $var:ident ($($spec:expr)?)) => {
+        $lext = $child;
         break $label Self::$var$(($spec))?;
     };
 
-    (@det $child:ident $flext:ident $label:tt set $var:ident $val:expr) => {
+    (@det $child:ident $lext:ident $label:tt set $var:ident $val:expr) => {
         let mut $var = $val;
     };
 
-    (@det $child:ident $flext:ident $label:tt mut $var:ident $val:expr) => {
+    (@det $child:ident $lext:ident $label:tt mut $var:ident $val:expr) => {
         $var = $val;
     };
 
-    (@det $child:ident $flext:ident $label:tt throw $err:ident ($position:expr $(,$spec:tt)?)) => {
+    (@det $child:ident $lext:ident $label:tt throw $err:ident ($position:expr $(,$spec:tt)?)) => {
         let _: () = $crate::compiler_error!(($err, $position) $($spec)?).throw();
     };
 
-    (@det $child:ident $flext:ident $label:tt rsome $current:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
+    (@det $child:ident $lext:ident $label:tt rsome $current:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
         while let Some($current) = $child.current {
             $(
-                $($crate::lexer!(@det $child $flext $label $key $param $body);)?
+                $($crate::lexer!(@det $child $lext $label $key $param $body);)?
                 $($code;)?
             )*
             $child.advance();
         }
     };
 
-    (@det $child:ident $flext:ident $label:tt rsome ($current:ident, $while_label:tt) {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
+    (@det $child:ident $lext:ident $label:tt rsome ($current:ident, $while_label:tt) {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
         $while_label: while let Some($current) = $child.current {
             $(
-                $($crate::lexer!(@det $child $flext $label $key $param $body);)?
+                $($crate::lexer!(@det $child $lext $label $key $param $body);)?
                 $($code;)?
             )*
             $child.advance();
         }
     };
 
-    (@det $child:ident $flext:ident $label:tt some $current:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
+    (@det $child:ident $lext:ident $label:tt some $current:ident {$($($code:block)? $($key:ident $param:tt $body:tt)?;)*}) => {
         if let Some($current) = $child.current {
             $(
-                $($crate::lexer!(@det $child $flext $label $key $param $body);)?
+                $($crate::lexer!(@det $child $lext $label $key $param $body);)?
                 $($code;)?
             )*
             $child.advance();
         }
     };
 
-    (@det $child:ident $flext:ident $label:tt $invalid:ident $val:tt $var:tt) => {
+    (@det $child:ident $lext:ident $label:tt $invalid:ident $val:tt $var:tt) => {
         compile_error!(concat!("[lexer] invalid detailed instruction `", stringify!($invalid), "`"))
     };
 

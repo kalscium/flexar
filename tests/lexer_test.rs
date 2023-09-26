@@ -1,3 +1,5 @@
+use flexar::lext::Lext;
+
 flexar::compiler_error! {
     [[Define]]
     (E001) "invalid character": ((1) "`", "` is an invalid character");
@@ -21,8 +23,8 @@ pub enum Lexer {
 }
 
 flexar::lexer! {
-    [[Lexer] flext: Flext, current, 'cycle]
-    else flexar::compiler_error!((E001, flext.cursor.position()) current).throw();
+    [[Lexer] lext, current, 'cycle]
+    else flexar::compiler_error!((E001, lext.cursor.position()) current).throw();
 
     Slash: /;
     Plus: +;
@@ -30,7 +32,7 @@ flexar::lexer! {
     RParen: ')';
     Dot: .;
     Colon: :;
-    [" \n\t"] >> ({ flext.advance(); flext = flext.spawn(); continue 'cycle; });
+    [" \n\t"] >> ({ lext.advance(); lext = lext.spawn(); continue 'cycle; });
 
     // `=` stuff
     EEE: (= = =);
@@ -76,7 +78,7 @@ flexar::lexer! {
 #[test]
 fn test_single() {
     let contents = "+  /\n(  .:) /";
-    let tokens = Lexer::tokenise(Flext::new(String::from("example"), contents));
+    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
     use Lexer as L;
     assert_eq!(*tokens, *Box::new([
         L::Plus,
@@ -92,7 +94,7 @@ fn test_single() {
 #[test]
 fn test_multiple() {
     let contents = "=  ==\n=:  ====.==   =====";
-    let tokens = Lexer::tokenise(Flext::new(String::from("example"), contents));
+    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
     use Lexer as L;
     assert_eq!(*tokens, *Box::new([
         L::EQ,
@@ -111,7 +113,7 @@ fn test_multiple() {
 #[test]
 fn test_string() {
     let contents = "+  /\n:( \"hello world?\"). /";
-    let tokens = Lexer::tokenise(Flext::new(String::from("example"), contents));
+    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
     use Lexer as L;
     assert_eq!(*tokens, *Box::new([
         L::Plus,
@@ -128,7 +130,7 @@ fn test_string() {
 #[test]
 fn test_int() {
     let contents = "+  /\n:( 1234). /";
-    let tokens = Lexer::tokenise(Flext::new(String::from("example"), contents));
+    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
     use Lexer as L;
     assert_eq!(*tokens, *Box::new([
         L::Plus,
@@ -145,7 +147,7 @@ fn test_int() {
 #[test]
 fn test_float() {
     let contents = "+  /\n:( 12.34). /";
-    let tokens = Lexer::tokenise(Flext::new(String::from("example"), contents));
+    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
     use Lexer as L;
     assert_eq!(*tokens, *Box::new([
         L::Plus,

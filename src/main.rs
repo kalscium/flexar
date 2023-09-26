@@ -1,5 +1,7 @@
 use std::fs;
 
+use flexar::lext::Lext;
+
 flexar::compiler_error! {
     [[Define]]
     (E001) "invalid character": ((1) "character `", "` is invalid");
@@ -22,8 +24,8 @@ pub enum Token {
 }
 
 flexar::lexer! {
-    [[Token] flext: Flext, current, 'cycle]
-    else flexar::compiler_error!((E001, flext.cursor.position()) current).throw();
+    [[Token] lext, current, 'cycle]
+    else flexar::compiler_error!((E001, lext.cursor.position()) current).throw();
 
     Plus: +;
     LParen: '(';
@@ -31,10 +33,10 @@ flexar::lexer! {
     Minus: '-';
     Mul: *;
     Div: /;
-    Let: let;
+    Let: ( l e t );
     EQ: =;
     Semi: ;;
-    [" \n\t"] >> ({ flext.advance(); flext = flext.spawn(); continue 'cycle; });
+    [" \n\t"] >> ({ lext.advance(); lext = lext.spawn(); continue 'cycle; });
 
     ["0123456789"] child {
         set number { String::new() };
@@ -62,6 +64,6 @@ flexar::lexer! {
 
 fn main() {
     let contents = fs::read_to_string("example.fx").unwrap();
-    let tokens = Token::tokenise(Flext::new("example.fx".into(), &contents));
+    let tokens = Token::tokenise(Lext::new("example.fx".into(), &contents));
     println!("{tokens:?}")
 }
