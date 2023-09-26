@@ -78,7 +78,7 @@ flexar::lexer! {
 #[test]
 fn test_single() {
     let contents = "+  /\n(  .:) /";
-    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,
@@ -94,7 +94,7 @@ fn test_single() {
 #[test]
 fn test_multiple() {
     let contents = "=  ==\n=:  ====.==   =====";
-    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::EQ,
@@ -113,7 +113,7 @@ fn test_multiple() {
 #[test]
 fn test_string() {
     let contents = "+  /\n:( \"hello world?\"). /";
-    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,
@@ -130,7 +130,7 @@ fn test_string() {
 #[test]
 fn test_int() {
     let contents = "+  /\n:( 1234). /";
-    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,
@@ -147,7 +147,7 @@ fn test_int() {
 #[test]
 fn test_float() {
     let contents = "+  /\n:( 12.34). /";
-    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,

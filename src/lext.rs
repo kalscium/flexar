@@ -16,6 +16,14 @@ impl Lext {
             current,
         }
     }
+
+    /// Gets the current position of the cursor (-1 idx)
+    #[inline]
+    pub fn rposition(&self) -> crate::cursor::Position {
+        let mut clone = self.cursor.clone();
+        clone.revance();
+        clone.position()
+    }
 }
 
 impl Flext for Lext {
@@ -46,13 +54,5 @@ impl Flext for Lext {
     #[inline]
     fn position(&self) -> crate::cursor::Position {
         self.cursor.position()
-    }
-
-    /// Gets the current position of the cursor (-1 idx)
-    #[inline]
-    fn rposition(&self) -> crate::cursor::Position {
-        let mut clone = self.cursor.clone();
-        clone.revance();
-        clone.position()
     }
 }

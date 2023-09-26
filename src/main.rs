@@ -80,7 +80,7 @@ fn main() {
 
     // Lexer
         let time = Instant::now();
-    let tokens = Token::tokenise(Lext::new("example.fx".into(), &contents));
+    let tokens = Token::tokenize(Lext::new("example.fx".into(), &contents));
         print_time("Tokenising completed in", time);
     println!("{:?}", tokens.iter().map(|x| &x.1).collect::<Box<[&TokenType]>>())
 

@@ -6,5 +6,4 @@ pub trait Flext {
     fn revance(&mut self);
     fn spawn(&self) -> Self;
     fn position(&self) -> Position;
-    fn rposition(&self) -> Position;
 }

@@ -88,13 +88,13 @@ macro_rules! lexer {
 
         impl $token {
             #[inline]
-            pub fn tokenise(mut $lext: $crate::lext::Lext) -> Box<[$token]> {
-                <$token_type>::tokenise($lext)
+            pub fn tokenize(mut $lext: $crate::lext::Lext) -> Box<[$token]> {
+                <$token_type>::tokenize($lext)
             }
         }
 
         impl $token_type {
-            pub fn tokenise(mut $lext: $crate::lext::Lext) -> Box<[$token]> {
+            pub fn tokenize(mut $lext: $crate::lext::Lext) -> Box<[$token]> {
                 let mut tokens = Vec::<$token>::new();
                 $($label:)? while let Some($current) = $lext.current {
                     tokens.push('code: {
