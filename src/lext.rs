@@ -1,4 +1,4 @@
-use crate::cursor::{MutCursor, Cursor};
+use crate::{cursor::{MutCursor, Cursor}, flext::Flext};
 
 /// Lexer context for tokenising
 pub struct Lext {
@@ -15,18 +15,25 @@ impl Lext {
             current,
         }
     }
+}
 
+impl Flext for Lext {
     /// Advances to the next token
-    pub fn advance(&mut self) {
+    fn advance(&mut self) {
         self.cursor.advance();
         self.current = self.cursor.current_char;
     }
 
     /// Spawns a child flext
-    pub fn spawn(&self) -> Self {
+    fn spawn(&self) -> Self {
         Self {
             cursor: self.cursor.spawn(),
             current: self.current,
         }
+    }
+
+    /// Gets the current position of the cursor
+    fn position(&self) -> crate::cursor::Position {
+        self.cursor.position()
     }
 }

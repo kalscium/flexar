@@ -1,11 +1,11 @@
-use flexar::{cursor::{Position, MutCursor, Cursor}, compiler_error, flexar};
+use flexar::{cursor::{Position, MutCursor, Cursor}, compiler_error, old_flexar};
 use std::str::FromStr;
 
 pub struct Number(Position, u64);
 
 const NUMBERS: &str = "0123456789";
 
-flexar! {
+old_flexar! {
     [[Number] flext: Flext]
     fn new {
         set (value = String::new());

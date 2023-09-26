@@ -1,4 +1,4 @@
-use flexar::lext::Lext;
+use flexar::{lext::Lext, flext::Flext};
 
 flexar::compiler_error! {
     [[Define]]
@@ -22,9 +22,9 @@ pub enum Lexer {
     Float(f32),
 }
 
-flexar::lexer! {
+flexar::flexar! {
     [[Lexer] lext, current, 'cycle]
-    else flexar::compiler_error!((E001, lext.cursor.position()) current).throw();
+    else flexar::compiler_error!((E001, lext.position()) current).throw();
 
     Slash: /;
     Plus: +;
@@ -48,7 +48,7 @@ flexar::lexer! {
             };
             { string.push(current) };
         };
-        throw E002(child.cursor.spawn().position());
+        throw E002(child.spawn().position());
     };
     ["0123456789"] child {
         set number { String::new() };

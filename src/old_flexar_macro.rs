@@ -1,20 +1,20 @@
 
 
 #[macro_export]
-macro_rules! flexar {
+macro_rules! old_flexar {
     ([[$struct:ident] $flext:ident: $flext_type:ty] $(
         fn $func:ident $body:tt
     )*) => {
         impl $struct {
             $(pub fn $func($flext: &mut $flext_type) -> Result<Self, $crate::compile_error::CompileError> {
                 $flext.advance();
-                $crate::flexar!(@body $body);
+                $crate::old_flexar!(@body $body);
             })*
         }
     };
 
     (@body {$($type:ident $action:tt;)*}) => {
-        $($crate::flexar!(@action $type $action);)*
+        $($crate::old_flexar!(@action $type $action);)*
     };
 
     (@action ok ($ok:expr)) => {
