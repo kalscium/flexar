@@ -83,7 +83,6 @@ fn main() {
     let tokens = Token::tokenize(Lext::new("example.fx".into(), &contents));
         print_time("Tokenising completed in", time);
     println!("{:?}", tokens.iter().map(|x| &x.1).collect::<Box<[&TokenType]>>())
-
 }
 
 fn print_time(str: &str, time: Instant) {

@@ -86,6 +86,13 @@ macro_rules! lexer {
             $token_type,
         );
 
+        impl $crate::token::Token for $token {
+            #[inline]
+            fn position(&self) -> $crate::cursor::Position {
+                self.0.clone()
+            }
+        }
+
         impl $token {
             #[inline]
             pub fn tokenize(mut $lext: $crate::lext::Lext) -> Box<[$token]> {
