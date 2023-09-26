@@ -46,6 +46,13 @@ impl MutCursor {
         self.current_char = cursor.advance();
         self.update(cursor);
     }
+
+    /// Un-advances through the file
+    pub fn revance(&mut self) {
+        let mut cursor = self.pos_end.dupe();
+        self.current_char = cursor.revance();
+        self.update(cursor);
+    }
 }
 
 /// A full position of a string of characters in a file
@@ -115,6 +122,20 @@ impl Cursor {
         } else {
             self.abs_idx += 1;
             self.ln_idx += 1;
+        }
+
+        self.get_char()
+    }
+
+    pub fn revance(&mut self) -> Option<char> {
+        if self.ln_idx == 1 { // if reached start of line
+            if self.ln == 1 { return None; } // if reached first line
+            self.abs_idx -= 1;
+            self.ln -= 1;
+            self.ln_idx = self.get_ln().unwrap().len() as u16;
+        } else {
+            self.abs_idx -= 1;
+            self.ln_idx -= 1;
         }
 
         self.get_char()

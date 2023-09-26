@@ -7,8 +7,8 @@ flexar::compiler_error! {
     (E002) "string not closed": "expected `\"` to close string";
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Token {
+#[derive(Debug, Clone, PartialEq)]
+pub enum TokenType {
     LParen,
     RParen,
     Int(u32),
@@ -23,8 +23,8 @@ pub enum Token {
     Ident(String),
 }
 
-flexar::flexar! {
-    [[Token] lext, current, 'cycle]
+flexar::lexer! {
+    [[Token, TokenType] lext, current, 'cycle]
     else flexar::compiler_error!((E001, lext.position()) current).throw();
 
     Plus: +;
@@ -77,11 +77,13 @@ flexar::flexar! {
 
 fn main() {
     let contents = fs::read_to_string("example.fx").unwrap();
+
+    // Lexer
         let time = Instant::now();
     let tokens = Token::tokenise(Lext::new("example.fx".into(), &contents));
         print_time("Tokenising completed in", time);
-        let _time = Instant::now();
-    println!("{tokens:?}")
+    println!("{:?}", tokens.iter().map(|x| &x.1).collect::<Box<[&TokenType]>>())
+
 }
 
 fn print_time(str: &str, time: Instant) {

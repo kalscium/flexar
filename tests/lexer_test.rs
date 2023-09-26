@@ -6,8 +6,8 @@ flexar::compiler_error! {
     (E002) "string not closed": "expected `\"` to close string";
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Lexer {
+#[derive(Debug, Clone, PartialEq)]
+pub enum TokenType {
     Slash,
     Plus,
     LParen,
@@ -22,8 +22,8 @@ pub enum Lexer {
     Float(f32),
 }
 
-flexar::flexar! {
-    [[Lexer] lext, current, 'cycle]
+flexar::lexer! {
+    [[Token, TokenType] lext, current, 'cycle]
     else flexar::compiler_error!((E001, lext.position()) current).throw();
 
     Slash: /;
@@ -78,9 +78,9 @@ flexar::flexar! {
 #[test]
 fn test_single() {
     let contents = "+  /\n(  .:) /";
-    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
-    use Lexer as L;
-    assert_eq!(*tokens, *Box::new([
+    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    use TokenType as L;
+    assert_tokens(&tokens, &[
         L::Plus,
         L::Slash,
         L::LParen,
@@ -88,15 +88,15 @@ fn test_single() {
         L::Colon,
         L::RParen,
         L::Slash,
-    ]));
+    ]);
 }
 
 #[test]
 fn test_multiple() {
     let contents = "=  ==\n=:  ====.==   =====";
-    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
-    use Lexer as L;
-    assert_eq!(*tokens, *Box::new([
+    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    use TokenType as L;
+    assert_tokens(&tokens, &[
         L::EQ,
         L::EE,
         L::EQ,
@@ -107,15 +107,15 @@ fn test_multiple() {
         L::EE,
         L::EEE,
         L::EE,
-    ]));
+    ]);
 }
 
 #[test]
 fn test_string() {
     let contents = "+  /\n:( \"hello world?\"). /";
-    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
-    use Lexer as L;
-    assert_eq!(*tokens, *Box::new([
+    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    use TokenType as L;
+    assert_tokens(&tokens, &[
         L::Plus,
         L::Slash,
         L::Colon,
@@ -124,15 +124,15 @@ fn test_string() {
         L::RParen,
         L::Dot,
         L::Slash,
-    ]));
+    ]);
 }
 
 #[test]
 fn test_int() {
     let contents = "+  /\n:( 1234). /";
-    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
-    use Lexer as L;
-    assert_eq!(*tokens, *Box::new([
+    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    use TokenType as L;
+    assert_tokens(&tokens, &[
         L::Plus,
         L::Slash,
         L::Colon,
@@ -141,15 +141,15 @@ fn test_int() {
         L::RParen,
         L::Dot,
         L::Slash,
-    ]));
+    ]);
 }
 
 #[test]
 fn test_float() {
     let contents = "+  /\n:( 12.34). /";
-    let tokens = Lexer::tokenise(Lext::new(String::from("example"), contents));
-    use Lexer as L;
-    assert_eq!(*tokens, *Box::new([
+    let tokens = Token::tokenise(Lext::new(String::from("example"), contents));
+    use TokenType as L;
+    assert_tokens(&tokens, &[
         L::Plus,
         L::Slash,
         L::Colon,
@@ -158,5 +158,13 @@ fn test_float() {
         L::RParen,
         L::Dot,
         L::Slash,
-    ]));
+    ]);
+}
+
+fn assert_tokens(tokens: &[Token], expected: &[TokenType]) {
+    tokens.iter()
+        .enumerate()
+        .for_each(|(i, x)| if x.1 != expected[i] {
+            panic!("Expected: {expected:?}\nGot: {:?}", tokens.iter().map(|x| &x.1).collect::<Box<[&TokenType]>>())
+        });
 }

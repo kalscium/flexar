@@ -21,7 +21,7 @@ macro_rules! compiler_error {
     }};
 
     ([[Define]]$(
-        $([$separator:ident])?
+        $([$($separator:tt)*])?
         $(#[$about:meta])* ($id:ident) $error_type:literal : $msg:tt
     );* $(;)?) => {
         pub trait CompileErrors {
