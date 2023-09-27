@@ -1,4 +1,4 @@
-use flexar::{lext::Lext, flext::Flext};
+use flexar::{lext::Lext, flext::Flext, token::Token};
 
 flexar::compiler_error! {
     [[Define]]
@@ -23,7 +23,7 @@ pub enum TokenType {
 }
 
 flexar::lexer! {
-    [[Token, TokenType] lext, current, 'cycle]
+    [[TokenType] lext, current, 'cycle]
     else flexar::compiler_error!((E001, lext.position()) current).throw();
 
     Slash: /;
@@ -78,7 +78,7 @@ flexar::lexer! {
 #[test]
 fn test_single() {
     let contents = "+  /\n(  .:) /";
-    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
+    let tokens = TokenType::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,
@@ -94,7 +94,7 @@ fn test_single() {
 #[test]
 fn test_multiple() {
     let contents = "=  ==\n=:  ====.==   =====";
-    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
+    let tokens = TokenType::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::EQ,
@@ -113,7 +113,7 @@ fn test_multiple() {
 #[test]
 fn test_string() {
     let contents = "+  /\n:( \"hello world?\"). /";
-    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
+    let tokens = TokenType::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,
@@ -130,7 +130,7 @@ fn test_string() {
 #[test]
 fn test_int() {
     let contents = "+  /\n:( 1234). /";
-    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
+    let tokens = TokenType::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,
@@ -147,7 +147,7 @@ fn test_int() {
 #[test]
 fn test_float() {
     let contents = "+  /\n:( 12.34). /";
-    let tokens = Token::tokenize(Lext::new(String::from("example"), contents));
+    let tokens = TokenType::tokenize(Lext::new(String::from("example"), contents));
     use TokenType as L;
     assert_tokens(&tokens, &[
         L::Plus,
@@ -161,10 +161,10 @@ fn test_float() {
     ]);
 }
 
-fn assert_tokens(tokens: &[Token], expected: &[TokenType]) {
+fn assert_tokens(tokens: &[Token<TokenType>], expected: &[TokenType]) {
     tokens.iter()
         .enumerate()
-        .for_each(|(i, x)| if x.1 != expected[i] {
-            panic!("Expected: {expected:?}\nGot: {:?}", tokens.iter().map(|x| &x.1).collect::<Box<[&TokenType]>>())
+        .for_each(|(i, x)| if x.token_type != expected[i] {
+            panic!("Expected: {expected:?}\nGot: {:?}", tokens.iter().map(|x| &x.token_type).collect::<Box<[&TokenType]>>())
         });
 }

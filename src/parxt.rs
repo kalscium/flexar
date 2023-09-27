@@ -2,14 +2,14 @@ use crate::{Flext, token::Token};
 
 /// Lexer context for tokenising
 #[derive(Debug, Clone, Copy)]
-pub struct Parsxt<'a, T: Token> {
-    pub tokens: &'a [T],
+pub struct Parsxt<'a, TT> {
+    pub tokens: &'a [Token<TT>],
     pub idx: u16,
 }
 
-impl<'a, T: Token> Parsxt<'a, T> {
+impl<'a, TT> Parsxt<'a, TT> {
     #[inline]
-    pub fn new(tokens: &'a [T]) -> Self {
+    pub fn new(tokens: &'a [Token<TT>]) -> Self {
         Self {
             tokens,
             idx: 0,
@@ -17,7 +17,7 @@ impl<'a, T: Token> Parsxt<'a, T> {
     }
 }
 
-impl<'a, T: Token> Flext for Parsxt<'a, T> {
+impl<'a, TT> Flext for Parsxt<'a, TT> {
     /// Advances to the next token
     #[inline]
     fn advance(&mut self) {
@@ -37,12 +37,12 @@ impl<'a, T: Token> Flext for Parsxt<'a, T> {
     /// Spawns a child flext
     #[inline]
     fn spawn(&self) -> Self {
-        self.clone()
+        Self { tokens: &self.tokens, idx: self.idx }
     }
 
     /// Gets the current position of the cursor
     #[inline]
     fn position(&self) -> crate::cursor::Position {
-        self.tokens[self.idx as usize].position()
+        self.tokens[self.idx as usize].position.clone()
     }
 }

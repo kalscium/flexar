@@ -8,7 +8,7 @@ flexar::compiler_error! {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum TokenType {
+pub enum Token {
     LParen,
     RParen,
     Int(u32),
@@ -24,7 +24,7 @@ pub enum TokenType {
 }
 
 flexar::lexer! {
-    [[Token, TokenType] lext, current, 'cycle]
+    [[Token] lext, current, 'cycle]
     else flexar::compiler_error!((E001, lext.position()) current).throw();
 
     Plus: +;
@@ -82,7 +82,7 @@ fn main() {
         let time = Instant::now();
     let tokens = Token::tokenize(Lext::new("example.fx".into(), &contents));
         print_time("Tokenising completed in", time);
-    println!("{:?}", tokens.iter().map(|x| &x.1).collect::<Box<[&TokenType]>>())
+    println!("{:?}", tokens.iter().map(|x| &x.token_type).collect::<Box<[&Token]>>())
 }
 
 fn print_time(str: &str, time: Instant) {
