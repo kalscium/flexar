@@ -1,6 +1,6 @@
 #[macro_export]
 macro_rules! parser {
-    ([[$node:ty] $parxt:ident: $token:ty] $($func:ident {$($($pats:tt),* => $body:tt$end:tt)*} else $else:expr;)*) => {
+    ([[$node:ty] $parxt:ident: $token:ty] $($func:ident {$($($pats:tt),* => $body:tt$end:tt)*} else $else:ident$else_body:tt;)*) => {
         impl $node {
             $(pub fn $func($parxt: &mut $crate::parxt::Parxt<'_, $token>) -> Result<$node, (u8, $crate::compile_error::CompileError)> {
                 let mut last_error: Option<(u8, $crate::compile_error::CompileError)> = None;
@@ -9,7 +9,7 @@ macro_rules! parser {
                 $($crate::parser!(@req $parxt child last_error 0, $($pats),* => $body$end);)*
                 
                 if let Some((i, x)) = last_error { if i > 0 { return Err((i, x)); } }
-                Err((0, $else))
+                Err($crate::parser!(@else $else$else_body 0))
             })*
         }
     };
@@ -68,7 +68,7 @@ macro_rules! parser {
     };
 
     // Body
-    (@body $parxt:ident $child:ident $last_error:ident {$($($pats:tt),* => $body:tt$end:tt)*} $((else $else:expr))? $(;)? | $depth:expr) => {
+    (@body $parxt:ident $child:ident $last_error:ident {$($($pats:tt),* => $body:tt$end:tt)*} $((else $else:ident$else_body:tt))? $(;)? | $depth:expr) => {
         let mut last_error: Option<(u8, $crate::compile_error::CompileError)> = None;
         let mut child = $child.spawn();
 
@@ -80,7 +80,7 @@ macro_rules! parser {
             Some((i, _)) if i > $depth => *$parxt = $child, // if things break remove this,
             _ => {
                 *$parxt = $child; // if things break remove this
-                $last_error = Some(($depth, $else));
+                $last_error = Some($crate::parser!(@else $else$else_body $depth));
             },
         })?
     };
@@ -88,6 +88,22 @@ macro_rules! parser {
     (@body $parxt:ident $child:ident $last_error:ident ($node:expr); | $depth:expr) => {
         *$parxt = $child;
         return Ok($node);
+    };
+
+    // Else
+    (@else Err$else:tt $depth:expr) => {
+        ($depth, $crate::compiler_error!$else)
+    };
+
+    (@else Ok($else:expr) $depth:expr) => {
+        return Ok($else);
+    };
+
+    (@else Other($variant:ident $else:expr) $depth:expr) => {
+        match $else {
+            Ok(x) => return Ok(Self::$variant(x)),
+            Err((i, x)) => ((i + $depth, x)),
+        }
     };
 
     // Outputs

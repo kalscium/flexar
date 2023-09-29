@@ -78,19 +78,29 @@ flexar::lexer! {
     };
 }
 
+#[derive(Debug)]
 pub enum Expr {
     Number(Number),
     BinOp(BinOp),
+    Factor(Factor),
 }
 
 #[derive(Debug)]
 pub enum BinOp {
-    Plus(Number, Number),
-    Minus(Number, Number),
+    Plus(Factor, Factor),
+    Minus(Factor, Factor),
+}
+
+#[derive(Debug)]
+pub enum Factor {
+    Mul(Number, Number),
+    Div(Number, Number),
+    Number(Number),
 }
 
 #[derive(Debug)]
 pub enum Number {
+    Expr(Box<Expr>),
     Int(u32),
     Float(f32),
 }
@@ -100,17 +110,24 @@ flexar::parser! {
     parse {
         (Token::Int(x)) => (Number::Int(*x));
         (Token::Float(x)) => (Number::Float(*x));
-    } else flexar::compiler_error!((E003, parxt.position()) format!("{:?}", parxt.current()));
+    } else Err((E003, parxt.position()) format!("{:?}", parxt.current()));
+}
+
+flexar::parser! {
+    [[Factor] parxt: Token]
+    parse {
+
+    } else Other(Number Number::parse(parxt));
 }
 
 flexar::parser! {
     [[BinOp] parxt: Token]
     parse {
-        [left: Number::parse] => {
-            (Token::Plus), [right: Number::parse] => (BinOp::Plus(left, right));
-            (Token::Minus), [right: Number::parse] => (BinOp::Minus(left, right));
-        } (else flexar::compiler_error!((E005, parxt.position()) format!("{:?}", parxt.current())))
-    } else flexar::compiler_error!((E004, parxt.position()) format!("{:?}", parxt.current()));
+        [left: Factor::parse] => {
+            (Token::Plus), [right: Factor::parse] => (BinOp::Plus(left, right));
+            (Token::Minus), [right: Factor::parse] => (BinOp::Minus(left, right));
+        } (else Err((E005, parxt.position()) format!("{:?}", parxt.current())))
+    } else Err((E004, parxt.position()) format!("{:?}", parxt.current()));
 }
 
 fn main() {
