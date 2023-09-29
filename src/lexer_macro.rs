@@ -96,14 +96,10 @@ macro_rules! lexer {
     
     // Sections
     
-    (@sect $lext:ident $label:tt $current:ident $out:ident: ($char:tt $($tail:tt)*)) => { // Change to something more efficient if too slow
-        if $crate::lexer!(@value $current $char) {
-            use $crate::flext::Flext;
-            let mut child = $lext.spawn();
-            child.advance();
-            $crate::lexer!(@recur-sect1 $label $out $lext child $($tail)*);
-        }
-    };
+    (@sect $lext:ident $label:tt $current:ident $out:ident: ($($tail:tt)*)) => {{ // Change to something more efficient if too slow
+        let mut child = $lext.spawn();
+        $crate::lexer!(@recur-sect1 $label $out $lext child $($tail)*);
+    }};
 
     (@sect $lext:ident $label:tt $current:ident $name:ident: $char:tt) => {
         if $crate::lexer!(@value $current $char) {
@@ -152,9 +148,8 @@ macro_rules! lexer {
         (@recur-sect1 $label:tt $out:ident $lext:ident $child:ident $char:tt $($tail:tt)*) => {
             if let Some(current) = $child.current {
                 if $crate::lexer!(@value current $char) {
-                    let mut child = $child.spawn();
-                    child.advance();
-                    $crate::lexer!(@recur-sect1 $label $out $lext child $($tail)*);
+                    $child.advance();
+                    $crate::lexer!(@recur-sect1 $label $out $lext $child $($tail)*);
                 }
             }
         };
