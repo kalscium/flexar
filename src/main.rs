@@ -10,6 +10,8 @@ flexar::compiler_error! {
     (E005) "expected `+` or `-` in binary operation": ((1) "expected `+` or `-`, found `", "`.");
     (E006) "unexpected token": ((1) "unexpected token `", "`.");
     (E007) "unclosed parentheses": "expected `)` to close parentheses";
+    (E008) "expected identifier in `let` statement": ((1) "expected ident, found `", "`.");
+    (E009) "expected `=` in `let` statement": ((1) "expected `=`, found `", "`.");
 }
 
 flexar::lexer! {
@@ -81,9 +83,8 @@ flexar::lexer! {
 
 #[derive(Debug)]
 pub enum Stmt {
-    Number(Node<Number>),
     Expr(Node<Expr>),
-    Factor(Node<Factor>),
+    Let(String, Node<Expr>),
 }
 
 #[derive(Debug)]
@@ -102,6 +103,7 @@ pub enum Factor {
 
 #[derive(Debug)]
 pub enum Number {
+    Get(String),
     Neg(Box<Node<Number>>),
     Expr(Box<Node<Expr>>),
     Int(u32),
@@ -111,24 +113,25 @@ pub enum Number {
 flexar::parser! {
     [[Number] parxt: Token]
     parse start {
+        (Token::Ident(x)) => (Get(x.clone()));
         (Token::Plus), [number: Number::parse] => [number];
-        (Token::Minus), [number: Number::parse] => (Number::Neg(Box::new(number)));
-        (Token::Int(x)) => (Number::Int(*x));
-        (Token::Float(x)) => (Number::Float(*x));
+        (Token::Minus), [number: Number::parse] => (Neg(Box::new(number)));
+        (Token::Int(x)) => (Int(*x));
+        (Token::Float(x)) => (Float(*x));
         (Token::LParen) => {
             [expr: Expr::parse] => {
-                (Token::RParen) => (Number::Expr(Box::new(expr)));
+                (Token::RParen) => (Expr(Box::new(expr)));
             } (else Err((E007, parxt.position())))
         };
-    } else Err((E003, parxt.position()) format!("{:?}", parxt.current()));
+    } else Err((E003, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
 }
 
 flexar::parser! {
     [[Factor] parxt: Token]
     parse start {
         [left: Number::parse] => {
-            (Token::Mul), [right: Factor::parse] => (Factor::Mul(left, Box::new(right)));
-            (Token::Div), [right: Factor::parse] => (Factor::Div(left, Box::new(right)));
+            (Token::Mul), [right: Factor::parse] => (Mul(left, Box::new(right)));
+            (Token::Div), [right: Factor::parse] => (Div(left, Box::new(right)));
         } (else Ok(Factor::Number(left)))
     } else Other(Number Number::parse(parxt));
 }
@@ -137,8 +140,8 @@ flexar::parser! {
     [[Expr] parxt: Token]
     parse start {
         [left: Factor::parse] => {
-            (Token::Plus), [right: Factor::parse] => (Expr::Plus(left, right));
-            (Token::Minus), [right: Factor::parse] => (Expr::Minus(left, right));
+            (Token::Plus), [right: Factor::parse] => (Plus(left, right));
+            (Token::Minus), [right: Factor::parse] => (Minus(left, right));
         } (else Ok(Expr::Factor(left)))
     } else Err((E004, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
 }
@@ -146,6 +149,12 @@ flexar::parser! {
 flexar::parser! {
     [[Stmt] parxt: Token]
     parse start {
+        [expr: Expr::parse] => (Expr(expr));
+        (Token::Let) => {
+            (Token::Ident(ident)) => {
+                (Token::EQ), [expr: Expr::parse] => (Let(ident.clone(), expr));
+            } (else Err((E009, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token()))))
+        } (else Err((E008, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token()))))
     } else Err((E006, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
 }
 
@@ -160,12 +169,16 @@ fn main() {
 
     // Parser
         let time = Instant::now();
-    let node = Expr::parse(&mut Parxt::new(&tokens));
+    let node = Stmt::parse(&mut Parxt::new(&tokens));
         print_time("Parsing completed in", time);
     match node {
         Ok(Node {node: x, ..}) => println!("{:?}", x),
         Err((_, x)) => x.throw(),
     }
+
+    // # TODO
+    // - Get program node done
+    // - Write an interpreter
 }
 
 fn print_time(str: &str, time: Instant) {
