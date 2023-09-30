@@ -128,6 +128,19 @@ macro_rules! lexer {
         };
     };
 
+    (@det $child:ident $lext:ident $label:tt update: ()) => {
+        $lext = $child;
+    };
+
+    (@det $child:ident $lext:ident $label:tt advance: $current:ident) => {
+        $child.advance();
+        let $current = $child.current.unwrap_or(' ');
+    };
+
+    (@det $child:ident $lext:ident $label:tt advance: ()) => {
+        $child.advance();
+    };
+
     (@det $child:ident $lext:ident $label:tt set $var:ident $val:expr) => {
         let mut $var = $val;
     };

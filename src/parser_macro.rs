@@ -89,8 +89,9 @@ macro_rules! parser {
     };
 
     (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident ($node:ident$(($($data:expr),*))?); | $depth:expr) => {
+        let pos = $parxt.position();
         *$parxt = $child;
-        return Ok($crate::token_node::Node::new($start_pos.combine(&$parxt.position()), Self::$node$(($($data),*))?));
+        return Ok($crate::token_node::Node::new($start_pos.combine(&pos), Self::$node$(($($data),*))?));
     };
 
     (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident [$node:expr]; | $depth:expr) => {
@@ -109,7 +110,7 @@ macro_rules! parser {
 
     (@else $start_pos:ident $parxt:ident Other($variant:ident $else:expr) $depth:expr) => {
         match $else {
-            Ok(x) => return Ok($crate::token_node::Node::new($start_pos.combine(&$parxt.position()), Self::$variant(x))),
+            Ok(x) => return Ok($crate::token_node::Node::new($start_pos.combine(&x.position), Self::$variant(x))),
             Err((i, x)) => ((i + $depth, x)),
         }
     };

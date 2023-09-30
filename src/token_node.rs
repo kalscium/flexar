@@ -1,4 +1,4 @@
-use std::{fmt::{Debug, Display}, ops::{Deref, DerefMut}};
+use std::fmt::{Debug, Display};
 use crate::cursor::Position;
 
 #[derive(Debug, Clone)]
@@ -29,18 +29,5 @@ impl<N> Node<N> {
             position,
             node,
         }
-    }
-}
-
-impl<N> Deref for Node<N> {
-    type Target = N;
-    fn deref(&self) -> &Self::Target {
-        &self.node
-    }
-}
-
-impl<N> DerefMut for Node<N> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.node
     }
 }
