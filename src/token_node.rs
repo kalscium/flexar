@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Display};
+use std::{fmt::{Debug, Display}, ops::{Deref, DerefMut}};
 use crate::cursor::Position;
 
 #[derive(Debug, Clone)]
@@ -7,9 +7,13 @@ pub struct Token<TT: Display> {
     pub token_type: TT,
 }
 
-impl<TT: Display> Token<TT> {
-    pub fn display(this: Option<&Self>) -> String {
-        this.map_or(" ".into(), |x| x.token_type.to_string())
+pub trait TokenToString {
+    fn to_string(&self) -> String;
+}
+
+impl<TT: Display> TokenToString for Option<&Token<TT>> {
+    fn to_string(&self) -> String {
+        self.map_or(" ".into(), |x| x.token_type.to_string())
     }
 }
 
@@ -25,5 +29,18 @@ impl<N> Node<N> {
             position,
             node,
         }
+    }
+}
+
+impl<N> Deref for Node<N> {
+    type Target = N;
+    fn deref(&self) -> &Self::Target {
+        &self.node
+    }
+}
+
+impl<N> DerefMut for Node<N> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.node
     }
 }

@@ -1,5 +1,5 @@
 use std::{fs, time::Instant};
-use flexar::{lext::Lext, flext::Flext, parxt::Parxt, token_node::{Node, self}};
+use flexar::{lext::Lext, flext::Flext, parxt::Parxt, token_node::{Node, TokenToString, self}};
 
 flexar::compiler_error! {
     [[Define]]
@@ -12,6 +12,7 @@ flexar::compiler_error! {
     (E007) "unclosed parentheses": "expected `)` to close parentheses";
     (E008) "expected identifier in `let` statement": ((1) "expected ident, found `", "`.");
     (E009) "expected `=` in `let` statement": ((1) "expected `=`, found `", "`.");
+    (E010) "expected one of `;`, `+`, `-`, `/` or `*`.": ((1) "expected `;` or operation, found `", "`.");
 }
 
 flexar::lexer! {
@@ -110,9 +111,15 @@ pub enum Number {
     Float(f32),
 }
 
+#[derive(Debug)]
+pub enum ProgramFile {
+    Single(Node<Stmt>),
+    Program(Box<[Node<Stmt>]>),
+}
+
 flexar::parser! {
     [[Number] parxt: Token]
-    parse start {
+    parse {
         (Token::Ident(x)) => (Get(x.clone()));
         (Token::Plus), [number: Number::parse] => [number];
         (Token::Minus), [number: Number::parse] => (Neg(Box::new(number)));
@@ -123,12 +130,12 @@ flexar::parser! {
                 (Token::RParen) => (Expr(Box::new(expr)));
             } (else Err((E007, parxt.position())))
         };
-    } else Err((E003, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
+    } else Err((E003, parxt.position()) parxt.current_token());
 }
 
 flexar::parser! {
     [[Factor] parxt: Token]
-    parse start {
+    parse {
         [left: Number::parse] => {
             (Token::Mul), [right: Factor::parse] => (Mul(left, Box::new(right)));
             (Token::Div), [right: Factor::parse] => (Div(left, Box::new(right)));
@@ -138,24 +145,52 @@ flexar::parser! {
 
 flexar::parser! {
     [[Expr] parxt: Token]
-    parse start {
+    parse {
         [left: Factor::parse] => {
             (Token::Plus), [right: Factor::parse] => (Plus(left, right));
             (Token::Minus), [right: Factor::parse] => (Minus(left, right));
         } (else Ok(Expr::Factor(left)))
-    } else Err((E004, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
+    } else Err((E004, parxt.position()) parxt.current_token());
 }
 
 flexar::parser! {
     [[Stmt] parxt: Token]
-    parse start {
+    parse {
         [expr: Expr::parse] => (Expr(expr));
         (Token::Let) => {
             (Token::Ident(ident)) => {
                 (Token::EQ), [expr: Expr::parse] => (Let(ident.clone(), expr));
-            } (else Err((E009, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token()))))
-        } (else Err((E008, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token()))))
-    } else Err((E006, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
+            } (else Err((E009, parxt.position()) parxt.current_token()))
+        } (else Err((E008, parxt.position()) parxt.current_token()))
+    } else Err((E006, parxt.position()) parxt.current_token());
+}
+
+flexar::parser! {
+    [[ProgramFile] parxt: Token]
+    single {
+        [stmt: Stmt::parse] => {
+            (Token::Semi) => (Single(stmt));
+        } (else Err((E010, parxt.position()) parxt.current_token()))
+    } else Err((E006, parxt.position()) parxt.current_token());
+}
+
+impl ProgramFile {
+    pub fn parse(tokens: &[token_node::Token<Token>]) -> Option<Self> {
+        if tokens.len() == 0 { return None }
+
+        let mut parxt = Parxt::new(tokens);
+        let mut stmts = Vec::new();
+
+        while parxt.current().is_some() {
+            match Self::single(&mut parxt) {
+                Ok(Node { node: Self::Single(x), .. }) => stmts.push(x),
+                Err((_, x)) => x.throw(),
+                _ => panic!("not possible"),
+            }
+        }
+
+        Some(Self::Program(stmts.into_boxed_slice()))
+    }
 }
 
 fn main() {
@@ -169,15 +204,14 @@ fn main() {
 
     // Parser
         let time = Instant::now();
-    let node = Stmt::parse(&mut Parxt::new(&tokens));
+    let node = ProgramFile::parse(&tokens);
         print_time("Parsing completed in", time);
-    match node {
-        Ok(Node {node: x, ..}) => println!("{:?}", x),
-        Err((_, x)) => x.throw(),
-    }
+    let node = match node {
+        Some(x) => x,
+        None => return,
+    };
 
     // # TODO
-    // - Get program node done
     // - Write an interpreter
 }
 

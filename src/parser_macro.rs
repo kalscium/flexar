@@ -1,17 +1,17 @@
-/// Creates a parser
+/// Creates a parsing function for a node
 #[macro_export]
 macro_rules! parser {
-    ([[$node:ty] $parxt:ident: $token:ty] $($func:ident $start_pos:ident {$($($pats:tt),* => $body:tt$end:tt)*} else $else:ident$else_body:tt;)*) => {
+    ([[$node:ty] $parxt:ident: $token:ty] $($func:ident {$($($pats:tt),* => $body:tt$end:tt)*} else $else:ident$else_body:tt;)*) => {
         impl $node {
             $(pub fn $func($parxt: &mut $crate::parxt::Parxt<'_, $token>) -> Result<$crate::token_node::Node<$node>, (u8, $crate::compile_error::CompileError)> {
                 let mut last_error: Option<(u8, $crate::compile_error::CompileError)> = None;
-                let $start_pos = $parxt.position();
+                let start_pos = $parxt.position();
                 let mut child = $parxt.spawn();
 
-                $($crate::parser!(@req $start_pos $parxt child last_error 0, $($pats),* => $body$end);)*
+                $($crate::parser!(@req start_pos $parxt child last_error 0, $($pats),* => $body$end);)*
                 
                 if let Some((i, x)) = last_error { if i > 0 { return Err((i, x)); } }
-                Err($crate::parser!(@else $start_pos $parxt $else$else_body 0))
+                Err($crate::parser!(@else start_pos $parxt $else$else_body 0))
             })*
         }
     };
