@@ -71,7 +71,6 @@ impl From<Cursor> for Position {
 pub struct Cursor {
     pub file_name: Rc<String>,
     file_contents: Rc<FileContents>,
-    pub abs_idx: u16,
     pub ln: u16,
     pub ln_idx: u16,
 }
@@ -81,7 +80,6 @@ impl Cursor {
         Self {
             file_name: Rc::new(file_name),
             file_contents: Rc::new(FileContents::new(contents)),
-            abs_idx: 0,
             ln: 1,
             ln_idx: 1,
         }
@@ -116,11 +114,9 @@ impl Cursor {
 
         if self.ln_idx as usize > self.get_ln().unwrap().len() { // if reached end of line
             if self.ln as usize == self.file_contents.0.len() { return None; } // if reached last line
-            self.abs_idx += 1;
             self.ln += 1;
             self.ln_idx = 1;
         } else {
-            self.abs_idx += 1;
             self.ln_idx += 1;
         }
 
@@ -130,11 +126,9 @@ impl Cursor {
     pub fn revance(&mut self) -> Option<char> {
         if self.ln_idx == 1 { // if reached start of line
             if self.ln == 1 { return None; } // if reached first line
-            self.abs_idx -= 1;
             self.ln -= 1;
             self.ln_idx = self.get_ln().unwrap().len() as u16;
         } else {
-            self.abs_idx -= 1;
             self.ln_idx -= 1;
         }
 

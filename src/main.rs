@@ -6,8 +6,10 @@ flexar::compiler_error! {
     (E001) "unexpected character": ((1) "character `", "` is unexpected");
     (E002) "string not closed": "expected `\"` to close string";
     (E003) "expected number": ((1) "expected number, found `", "`.");
-    (E004) "expected a binary operation": ((1) "expected binop, found `", "`.");
+    (E004) "expected an expr": ((1) "expected expr, found `", "`.");
     (E005) "expected `+` or `-` in binary operation": ((1) "expected `+` or `-`, found `", "`.");
+    (E006) "unexpected token": ((1) "unexpected token `", "`.");
+    (E007) "unclosed parentheses": "expected `)` to close parentheses";
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -24,6 +26,7 @@ pub enum Token {
     EQ,
     Semi,
     Ident(String),
+    Undefined,
 }
 
 flexar::lexer! {
@@ -79,27 +82,29 @@ flexar::lexer! {
 }
 
 #[derive(Debug)]
-pub enum Expr {
+pub enum Stmt {
     Number(Number),
-    BinOp(BinOp),
+    Expr(Expr),
     Factor(Factor),
 }
 
 #[derive(Debug)]
-pub enum BinOp {
+pub enum Expr {
     Plus(Factor, Factor),
     Minus(Factor, Factor),
+    Factor(Factor),
 }
 
 #[derive(Debug)]
 pub enum Factor {
-    Mul(Number, Number),
-    Div(Number, Number),
+    Mul(Number, Box<Factor>),
+    Div(Number, Box<Factor>),
     Number(Number),
 }
 
 #[derive(Debug)]
 pub enum Number {
+    Neg(Box<Number>),
     Expr(Box<Expr>),
     Int(u32),
     Float(f32),
@@ -108,26 +113,42 @@ pub enum Number {
 flexar::parser! {
     [[Number] parxt: Token]
     parse {
+        (Token::Plus), [number: Number::parse] => (number);
+        (Token::Minus), [number: Number::parse] => (Number::Neg(Box::new(number)));
         (Token::Int(x)) => (Number::Int(*x));
         (Token::Float(x)) => (Number::Float(*x));
+        (Token::LParen) => {
+            [expr: Expr::parse] => {
+                (Token::RParen) => (Number::Expr(Box::new(expr)));
+            } (else Err((E007, parxt.position())))
+        };
     } else Err((E003, parxt.position()) format!("{:?}", parxt.current()));
 }
 
 flexar::parser! {
     [[Factor] parxt: Token]
     parse {
-
+        [left: Number::parse] => {
+            (Token::Mul), [right: Factor::parse] => (Factor::Mul(left, Box::new(right)));
+            (Token::Div), [right: Factor::parse] => (Factor::Div(left, Box::new(right)));
+        } (else Ok(Factor::Number(left)))
     } else Other(Number Number::parse(parxt));
 }
 
 flexar::parser! {
-    [[BinOp] parxt: Token]
+    [[Expr] parxt: Token]
     parse {
         [left: Factor::parse] => {
-            (Token::Plus), [right: Factor::parse] => (BinOp::Plus(left, right));
-            (Token::Minus), [right: Factor::parse] => (BinOp::Minus(left, right));
-        } (else Err((E005, parxt.position()) format!("{:?}", parxt.current())))
+            (Token::Plus), [right: Factor::parse] => (Expr::Plus(left, right));
+            (Token::Minus), [right: Factor::parse] => (Expr::Minus(left, right));
+        } (else Ok(Expr::Factor(left)))
     } else Err((E004, parxt.position()) format!("{:?}", parxt.current()));
+}
+
+flexar::parser! {
+    [[Stmt] parxt: Token]
+    parse {
+    } else Err((E006, parxt.position()) format!("{:?}", parxt.current()));
 }
 
 fn main() {
@@ -141,7 +162,7 @@ fn main() {
 
     // Parser
         let time = Instant::now();
-    let node = BinOp::parse(&mut Parxt::new(&tokens));
+    let node = Expr::parse(&mut Parxt::new(&tokens));
         print_time("Parsing completed in", time);
     match node {
         Ok(x) => println!("{:?}", x),

@@ -6,7 +6,7 @@ macro_rules! parser {
                 let mut last_error: Option<(u8, $crate::compile_error::CompileError)> = None;
                 let mut child = $parxt.spawn();
 
-                $($crate::parser!(@req $parxt child last_error 0, $($pats),* => $body$end);)*
+                $($crate::parser!(@req $parxt child last_error $else$else_body 0, $($pats),* => $body$end);)*
                 
                 if let Some((i, x)) = last_error { if i > 0 { return Err((i, x)); } }
                 Err($crate::parser!(@else $else$else_body 0))
@@ -15,11 +15,11 @@ macro_rules! parser {
     };
 
     // Requirements
-    (@req $parxt:ident $child:ident $last_error:ident $depth:expr, [$out:ident: $func:expr], $($tail:tt),* => $body:tt$end:tt) => {
+    (@req $parxt:ident $child:ident $last_error:ident $else:ident$else_body:tt $depth:expr, [$out:ident: $func:expr], $($tail:tt),* => $body:tt$end:tt) => {
         #[allow(unused_parens)]
         match $func(&mut $child) {
             Ok($out) => {
-                $crate::parser!(@req $parxt $child $last_error $depth + 1, $($tail),* => $body$end);
+                $crate::parser!(@req $parxt $child $last_error $else$else_body $depth + 1, $($tail),* => $body$end);
             }
             Err((i, x)) => {
                 let i = i + $depth;
@@ -33,11 +33,11 @@ macro_rules! parser {
         };
     };
 
-    (@req $parxt:ident $child:ident $last_error:ident $depth:expr, [$out:ident: $func:expr] => $body:tt$end:tt) => {
+    (@req $parxt:ident $child:ident $last_error:ident $else:ident$else_body:tt $depth:expr, [$out:ident: $func:expr] => $body:tt$end:tt) => {
         #[allow(unused_parens)]
         match $func(&mut $child) {
             Ok($out) => {
-                $crate::parser!(@body $parxt $child $last_error $body$end | $depth + 1);
+                $crate::parser!(@body $parxt $child $last_error $else$else_body $body$end | $depth + 1);
             }
             Err((i, x)) => {
                 let i = i + $depth;
@@ -51,32 +51,33 @@ macro_rules! parser {
         };
     };
 
-    (@req $parxt:ident $child:ident $last_error:ident $depth:expr, $head:pat, $($tail:tt),* => $body:tt$end:tt) => {
+    (@req $parxt:ident $child:ident $last_error:ident $else:ident$else_body:tt $depth:expr, $head:pat, $($tail:tt),* => $body:tt$end:tt) => {
         #[allow(unused_parens)]
         if let $head = $child.current() {
-            $child.advance();
-            $crate::parser!(@req $parxt $child $last_error $depth + 1, $($tail),* => $body$end);
+            $crate::parser!(@advance $child $else$else_body $depth);
+            $crate::parser!(@req $parxt $child $last_error $else$else_body $depth + 1, $($tail),* => $body$end);
         }
     };
 
-    (@req $parxt:ident $child:ident $last_error:ident $depth:expr, $head:pat => $body:tt$end:tt) => {
+    (@req $parxt:ident $child:ident $last_error:ident $else:ident$else_body:tt $depth:expr, $head:pat => $body:tt$end:tt) => {
         #[allow(unused_parens)]
         if let $head = $child.current() {
-            $child.advance();
-            $crate::parser!(@body $parxt $child $last_error $body$end | $depth + 1);
+            $crate::parser!(@advance $child $else$else_body $depth);
+            $crate::parser!(@body $parxt $child $last_error $else$else_body $body$end | $depth + 1);
         }
     };
 
     // Body
-    (@body $parxt:ident $child:ident $last_error:ident {$($($pats:tt),* => $body:tt$end:tt)*} $((else $else:ident$else_body:tt))? $(;)? | $depth:expr) => {
+    (@body $parxt:ident $child:ident $last_error:ident $old_else:ident$old_else_body:tt {$($($pats:tt),* => $body:tt$end:tt)*} $((else $else:ident$else_body:tt))? $(;)? | $depth:expr) => {
         let mut last_error: Option<(u8, $crate::compile_error::CompileError)> = None;
         let mut child = $child.spawn();
-
-        $($crate::parser!(@req $parxt child $last_error $depth, $($pats),* => $body$end);)*
+        
+        $($crate::parser!(@req $parxt child $last_error $old_else$old_else_body $depth, $($pats),* => $body$end);)* // not how I wanted it to work
         if let Some((i, x)) = last_error {
             $last_error = Some((i, x));
-        }
-        $(match $last_error {
+        } 
+        $(#[allow(unreachable_code)]
+        match $last_error {
             Some((i, _)) if i > $depth => *$parxt = $child, // if things break remove this,
             _ => {
                 *$parxt = $child; // if things break remove this
@@ -85,7 +86,7 @@ macro_rules! parser {
         })?
     };
 
-    (@body $parxt:ident $child:ident $last_error:ident ($node:expr); | $depth:expr) => {
+    (@body $parxt:ident $child:ident $last_error:ident $else:ident$else_body:tt ($node:expr); | $depth:expr) => {
         *$parxt = $child;
         return Ok($node);
     };
@@ -104,6 +105,12 @@ macro_rules! parser {
             Ok(x) => return Ok(Self::$variant(x)),
             Err((i, x)) => ((i + $depth, x)),
         }
+    };
+
+    (@advance $parxt:ident $else:tt$else_body:tt $depth:expr) => {
+        if $parxt.done {
+            return Err($crate::parser!(@else $else$else_body $depth));
+        } $parxt.advance();
     };
 
     // Outputs

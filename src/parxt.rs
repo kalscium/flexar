@@ -5,6 +5,7 @@ use crate::{Flext, token::Token};
 pub struct Parxt<'a, TT> {
     pub tokens: &'a [Token<TT>],
     pub idx: u16,
+    pub done: bool,
 }
 
 impl<'a, TT> Parxt<'a, TT> {
@@ -13,6 +14,7 @@ impl<'a, TT> Parxt<'a, TT> {
         Self {
             tokens,
             idx: 0,
+            done: tokens.len() == 0,
         }
     }
 
@@ -33,6 +35,8 @@ impl<'a, TT> Flext for Parxt<'a, TT> {
     fn advance(&mut self) {
         if self.idx < self.tokens.len() as u16 -1 {
             self.idx += 1;
+        } else {
+            self.done = true;
         }
     }
 
@@ -47,7 +51,7 @@ impl<'a, TT> Flext for Parxt<'a, TT> {
     /// Spawns a child flext
     #[inline]
     fn spawn(&self) -> Self {
-        Self { tokens: self.tokens, idx: self.idx }
+        Self { tokens: self.tokens, idx: self.idx, done: self.done, }
     }
 
     /// Gets the current position of the cursor

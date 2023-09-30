@@ -20,6 +20,7 @@ pub enum TokenType {
     Str(String),
     Int(u32),
     Float(f32),
+    Undefined,
 }
 
 flexar::lexer! {

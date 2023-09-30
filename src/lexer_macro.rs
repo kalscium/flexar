@@ -23,6 +23,7 @@
 ///    Str(String),
 ///    Int(u32),
 ///    Float(f32),
+///    Undefined,
 /// }
 ///
 /// lexer! {
@@ -90,6 +91,12 @@ macro_rules! lexer {
                     });
                     $lext.cursor.pos_start = $lext.cursor.pos_end.clone(); // cause different tokens with different start pos
                 } tokens.into_boxed_slice()
+            }
+        }
+
+        impl Default for $token_type {
+            fn default() -> Self {
+                Self::Undefined
             }
         }
     };
