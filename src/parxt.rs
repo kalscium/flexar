@@ -1,4 +1,6 @@
-use crate::{Flext, token::Token};
+use std::rc::Rc;
+
+use crate::{Flext, token::Token, cursor::Position};
 
 /// Lexer context for tokenising
 #[derive(Debug, Clone, Copy)]
@@ -19,13 +21,24 @@ impl<'a, TT> Parxt<'a, TT> {
     }
 
     #[inline]
-    pub fn current_token(&self) -> &'a Token<TT> {
-        &self.tokens[self.idx as usize]
+    pub fn current_token(&self) -> Option<&'a Token<TT>> {
+        self.tokens.get(self.idx as usize)
     }
 
     #[inline]
-    pub fn current(&self) -> &'a TT {
-        &self.tokens[self.idx as usize].token_type
+    pub fn current(&self) -> Option<&'a TT> {
+        self.current_token().map(|x| &x.token_type)
+    }
+
+    #[inline]
+    fn get_last_pos(&self) -> Position {
+        if self.tokens.len() == 0 { panic!("file's empty, gonna add code to handle that later") }
+        let mut position = self.tokens[self.tokens.len() -1].position.clone();
+        let mut end = (*position.1).clone();
+        end.ln_idx += 1;
+        let end = Rc::new(end);
+        (position.0, position.1) = (end.clone(), end);
+        position
     }
 }
 
@@ -33,11 +46,7 @@ impl<'a, TT> Flext for Parxt<'a, TT> {
     /// Advances to the next token
     #[inline]
     fn advance(&mut self) {
-        if self.idx < self.tokens.len() as u16 -1 {
-            self.idx += 1;
-        } else {
-            self.done = true;
-        }
+        self.idx += 1;
     }
 
     /// Un-Advances
@@ -56,7 +65,8 @@ impl<'a, TT> Flext for Parxt<'a, TT> {
 
     /// Gets the current position of the cursor
     #[inline]
-    fn position(&self) -> crate::cursor::Position {
-        self.tokens[self.idx as usize].position.clone()
+    fn position(&self) -> Position {
+        self.current_token().map(|x| x.position.clone())
+            .unwrap_or_else(|| self.get_last_pos())
     }
 }
