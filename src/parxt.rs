@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{Flext, token::Token, cursor::Position};
+use crate::{Flext, token_node::Token, cursor::Position};
 
 /// Lexer context for tokenising
 #[derive(Debug, Clone, Copy)]

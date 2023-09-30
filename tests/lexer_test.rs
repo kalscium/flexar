@@ -1,4 +1,4 @@
-use flexar::{lext::Lext, flext::Flext, token::Token};
+use flexar::{lext::Lext, flext::Flext, token_node::Token};
 
 flexar::compiler_error! {
     [[Define]]

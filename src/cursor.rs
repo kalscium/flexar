@@ -59,6 +59,13 @@ impl MutCursor {
 #[derive(Debug, Clone)]
 pub struct Position(pub Rc<Cursor>, pub Rc<Cursor>);
 
+impl Position {
+    #[inline]
+    pub fn combine(&self, other: &Position) -> Self {
+        Self(self.0.clone(), other.1.clone())
+    }
+}
+
 impl From<Cursor> for Position {
     fn from(cursor: Cursor) -> Self {
         let cursor = Rc::new(cursor);

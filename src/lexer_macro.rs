@@ -82,8 +82,8 @@
 macro_rules! lexer {
     ([[$token_type:ty] $lext:ident, $current:ident $(, $label:tt)?] else $no_match:expr; $($first:tt$sep:tt$second:tt;)*) => {
         impl $token_type {
-            pub fn tokenize(mut $lext: $crate::lext::Lext) -> Box<[$crate::token::Token<Self>]> {
-                let mut tokens = Vec::<$crate::token::Token<Self>>::new();
+            pub fn tokenize(mut $lext: $crate::lext::Lext) -> Box<[$crate::token_node::Token<Self>]> {
+                let mut tokens = Vec::<$crate::token_node::Token<Self>>::new();
                 $($label:)? while let Some($current) = $lext.current {
                     tokens.push('code: {
                         $($crate::lexer!(@sect $lext 'code $current $first$sep$second);)*
@@ -112,7 +112,7 @@ macro_rules! lexer {
         if $crate::lexer!(@value $current $char) {
             use $crate::flext::Flext;
             $lext.advance();
-            break $label $crate::token::Token {
+            break $label $crate::token_node::Token {
                 position: $lext.rposition(),
                 token_type: Self::$name,
             };
@@ -144,7 +144,7 @@ macro_rules! lexer {
                 if $crate::lexer!(@value current $char) {
                     $lext = $child;
                     $lext.advance();
-                    break $label $crate::token::Token {
+                    break $label $crate::token_node::Token {
                         position: $lext.rposition(),
                         token_type: Self::$out,
                     };
@@ -194,7 +194,7 @@ macro_rules! lexer {
 
     (@det $child:ident $lext:ident $label:tt done $var:ident ($($spec:expr)?)) => {
         $lext = $child;
-        break $label $crate::token::Token {
+        break $label $crate::token_node::Token {
             position: $lext.rposition(),
             token_type: Self::$var$(($spec))?,
         };

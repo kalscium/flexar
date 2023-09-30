@@ -1,5 +1,5 @@
 use std::{fs, time::Instant};
-use flexar::{lext::Lext, flext::Flext, parxt::Parxt};
+use flexar::{lext::Lext, flext::Flext, parxt::Parxt, token_node::Node};
 
 flexar::compiler_error! {
     [[Define]]
@@ -83,37 +83,37 @@ flexar::lexer! {
 
 #[derive(Debug)]
 pub enum Stmt {
-    Number(Number),
-    Expr(Expr),
-    Factor(Factor),
+    Number(Node<Number>),
+    Expr(Node<Expr>),
+    Factor(Node<Factor>),
 }
 
 #[derive(Debug)]
 pub enum Expr {
-    Plus(Factor, Factor),
-    Minus(Factor, Factor),
-    Factor(Factor),
+    Plus(Node<Factor>, Node<Factor>),
+    Minus(Node<Factor>, Node<Factor>),
+    Factor(Node<Factor>),
 }
 
 #[derive(Debug)]
 pub enum Factor {
-    Mul(Number, Box<Factor>),
-    Div(Number, Box<Factor>),
-    Number(Number),
+    Mul(Node<Number>, Box<Node<Factor>>),
+    Div(Node<Number>, Box<Node<Factor>>),
+    Number(Node<Number>),
 }
 
 #[derive(Debug)]
 pub enum Number {
-    Neg(Box<Number>),
-    Expr(Box<Expr>),
+    Neg(Box<Node<Number>>),
+    Expr(Box<Node<Expr>>),
     Int(u32),
     Float(f32),
 }
 
 flexar::parser! {
     [[Number] parxt: Token]
-    parse {
-        (Token::Plus), [number: Number::parse] => (number);
+    parse start {
+        (Token::Plus), [number: Number::parse] => [number];
         (Token::Minus), [number: Number::parse] => (Number::Neg(Box::new(number)));
         (Token::Int(x)) => (Number::Int(*x));
         (Token::Float(x)) => (Number::Float(*x));
@@ -127,7 +127,7 @@ flexar::parser! {
 
 flexar::parser! {
     [[Factor] parxt: Token]
-    parse {
+    parse start {
         [left: Number::parse] => {
             (Token::Mul), [right: Factor::parse] => (Factor::Mul(left, Box::new(right)));
             (Token::Div), [right: Factor::parse] => (Factor::Div(left, Box::new(right)));
@@ -137,7 +137,7 @@ flexar::parser! {
 
 flexar::parser! {
     [[Expr] parxt: Token]
-    parse {
+    parse start {
         [left: Factor::parse] => {
             (Token::Plus), [right: Factor::parse] => (Expr::Plus(left, right));
             (Token::Minus), [right: Factor::parse] => (Expr::Minus(left, right));
@@ -147,7 +147,7 @@ flexar::parser! {
 
 flexar::parser! {
     [[Stmt] parxt: Token]
-    parse {
+    parse start {
     } else Err((E006, parxt.position()) format!("{:?}", parxt.current()));
 }
 

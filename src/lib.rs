@@ -6,7 +6,7 @@ pub mod lexer_macro;
 pub mod parser_macro;
 pub mod parxt;
 pub mod flext;
-pub mod token;
+pub mod token_node;
 
 /// Prelude
 pub use flext::Flext;
