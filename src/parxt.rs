@@ -1,16 +1,16 @@
-use std::rc::Rc;
+use std::{rc::Rc, fmt::Display};
 
 use crate::{Flext, token_node::Token, cursor::Position};
 
 /// Lexer context for tokenising
 #[derive(Debug, Clone, Copy)]
-pub struct Parxt<'a, TT> {
+pub struct Parxt<'a, TT: Display> {
     pub tokens: &'a [Token<TT>],
     pub idx: u16,
     pub done: bool,
 }
 
-impl<'a, TT> Parxt<'a, TT> {
+impl<'a, TT: Display> Parxt<'a, TT> {
     #[inline]
     pub fn new(tokens: &'a [Token<TT>]) -> Self {
         Self {
@@ -42,7 +42,7 @@ impl<'a, TT> Parxt<'a, TT> {
     }
 }
 
-impl<'a, TT> Flext for Parxt<'a, TT> {
+impl<'a, TT: Display> Flext for Parxt<'a, TT> {
     /// Advances to the next token
     #[inline]
     fn advance(&mut self) {

@@ -1,3 +1,4 @@
+/// Creates a parser
 #[macro_export]
 macro_rules! parser {
     ([[$node:ty] $parxt:ident: $token:ty] $($func:ident $start_pos:ident {$($($pats:tt),* => $body:tt$end:tt)*} else $else:ident$else_body:tt;)*) => {

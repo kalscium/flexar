@@ -1,5 +1,5 @@
 use std::{fs, time::Instant};
-use flexar::{lext::Lext, flext::Flext, parxt::Parxt, token_node::Node};
+use flexar::{lext::Lext, flext::Flext, parxt::Parxt, token_node::{Node, self}};
 
 flexar::compiler_error! {
     [[Define]]
@@ -12,26 +12,24 @@ flexar::compiler_error! {
     (E007) "unclosed parentheses": "expected `)` to close parentheses";
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Token {
-    LParen,
-    RParen,
-    Int(u32),
-    Float(f32),
-    Plus,
-    Minus,
-    Mul,
-    Div,
-    Let,
-    EQ,
-    Semi,
-    Ident(String),
-    Undefined,
-}
-
 flexar::lexer! {
     [[Token] lext, current, 'cycle]
     else flexar::compiler_error!((E001, lext.position()) current).throw();
+
+    token_types {
+        LParen => "(";
+        RParen => ")";
+        Int(val: u32) => val;
+        Float(val: f32) => val;
+        Plus => "+";
+        Minus => "-";
+        Mul => "*";
+        Div => "/";
+        Let => "let";
+        EQ => "=";
+        Semi => ";";
+        Ident(val: String) => val;
+    }
 
     Plus: +;
     LParen: '(';
@@ -142,13 +140,13 @@ flexar::parser! {
             (Token::Plus), [right: Factor::parse] => (Expr::Plus(left, right));
             (Token::Minus), [right: Factor::parse] => (Expr::Minus(left, right));
         } (else Ok(Expr::Factor(left)))
-    } else Err((E004, parxt.position()) format!("{:?}", parxt.current()));
+    } else Err((E004, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
 }
 
 flexar::parser! {
     [[Stmt] parxt: Token]
     parse start {
-    } else Err((E006, parxt.position()) format!("{:?}", parxt.current()));
+    } else Err((E006, parxt.position()) format!("{}", token_node::Token::display(parxt.current_token())));
 }
 
 fn main() {
@@ -165,7 +163,7 @@ fn main() {
     let node = Expr::parse(&mut Parxt::new(&tokens));
         print_time("Parsing completed in", time);
     match node {
-        Ok(x) => println!("{:?}", x),
+        Ok(Node {node: x, ..}) => println!("{:?}", x),
         Err((_, x)) => x.throw(),
     }
 }

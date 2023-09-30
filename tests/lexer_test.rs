@@ -6,26 +6,24 @@ flexar::compiler_error! {
     (E002) "string not closed": "expected `\"` to close string";
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum TokenType {
-    Slash,
-    Plus,
-    LParen,
-    RParen,
-    EE,
-    EEE,
-    EQ,
-    Dot,
-    Colon,
-    Str(String),
-    Int(u32),
-    Float(f32),
-    Undefined,
-}
-
 flexar::lexer! {
     [[TokenType] lext, current, 'cycle]
     else flexar::compiler_error!((E001, lext.position()) current).throw();
+
+    token_types {
+        Slash => "/";
+        Plus => "+";
+        LParen => "(";
+        RParen => ")";
+        EE => "==";
+        EEE => "===";
+        EQ => "=";
+        Dot => ".";
+        Colon => ":";
+        Str(val: String) => val;
+        Int(val: u32) => val;
+        Float(val: f32) => val;
+    }
 
     Slash: /;
     Plus: +;
