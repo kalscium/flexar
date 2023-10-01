@@ -7,7 +7,7 @@ use flexar::{lext::Lext, flext::Flext, parxt::Parxt, token_node::{Node, TokenToS
 //////////////////////////
 
 flexar::compiler_error! {
-    [[Define]]
+    [[Define] CompileErrors]
     (E001) "unexpected character": ((1) "character `", "` is unexpected");
     (E002) "string not closed": "expected `\"` to close string";
     (E003) "expected number": ((1) "expected number, found `", "`.");

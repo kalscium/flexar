@@ -3,7 +3,7 @@
 /// ## Error Example
 /// ```rust
 /// flexar::compiler_error! {
-///     [[Define]]
+///     [[Define] CompilerErrors]
 /// 
 ///     [Errors]
 ///     /// An example error
@@ -20,17 +20,17 @@ macro_rules! compiler_error {
         $crate::compile_error::CompileError::new(stringify!($id), $crate::compile_error::CompileError::$id.error_type, $crate::compile_error::CompileError::$id.fmt.format(&[$($arg.to_string()),*]), $pos)
     }};
 
-    ([[Define]]$(
+    ([[Define] $name:ident]$(
         $([$($separator:tt)*])?
         $(#[$about:meta])* ($id:ident) $error_type:literal : $msg:tt
     );* $(;)?) => {
-        pub trait CompileErrors {
+        pub trait $name {
             $(
                 $crate::compiler_error!(@trait $(#[$about])* $id $msg);
             )*
         }
 
-        impl CompileErrors for $crate::compile_error::CompileError {
+        impl $name for $crate::compile_error::CompileError {
             $(
                 $crate::compiler_error!(@impl $(#[$about])* $id $error_type $msg);
             )*

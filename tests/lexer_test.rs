@@ -1,7 +1,7 @@
 use flexar::{lext::Lext, flext::Flext, token_node::Token};
 
 flexar::compiler_error! {
-    [[Define]]
+    [[Define] CompileErrors]
     (E001) "invalid character": ((1) "`", "` is an invalid character");
     (E002) "string not closed": "expected `\"` to close string";
 }
