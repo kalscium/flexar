@@ -114,8 +114,8 @@ pub enum Stmt {
 
 #[derive(Debug)]
 pub enum Expr {
-    Plus(Node<Factor>, Node<Factor>),
-    Minus(Node<Factor>, Node<Factor>),
+    Plus(Node<Factor>, Box<Node<Expr>>),
+    Minus(Node<Factor>, Box<Node<Expr>>),
     Factor(Node<Factor>),
 }
 
@@ -171,8 +171,8 @@ flexar::parser! {
     [[Expr] parxt: Token]
     parse {
         [left: Factor::parse] => {
-            (Token::Plus), [right: Factor::parse] => (Plus(left, right));
-            (Token::Minus), [right: Factor::parse] => (Minus(left, right));
+            (Token::Plus), [right: Expr::parse] => (Plus(left, Box::new(right)));
+            (Token::Minus), [right: Expr::parse] => (Minus(left, Box::new(right)));
         } (else Ok(Expr::Factor(left)))
     } else Err((E004, parxt.position()) parxt.current_token());
 }

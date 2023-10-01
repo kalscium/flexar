@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-/// A mutable cursor for parsing / lexing with
+/// A mutable cursor for the lexer
 #[derive(Debug, Clone)]
 pub struct MutCursor {
     pub pos_start: Rc<Cursor>,
@@ -60,6 +60,7 @@ impl MutCursor {
 pub struct Position(pub Rc<Cursor>, pub Rc<Cursor>);
 
 impl Position {
+    /// Merges with another position to create a new position that contains both
     #[inline]
     pub fn combine(&self, other: &Position) -> Self {
         Self(self.0.clone(), other.1.clone())
@@ -143,6 +144,7 @@ impl Cursor {
     }
 }
 
+/// Holds the contents of a file
 #[derive(Debug)]
 pub struct FileContents(pub Box<[Box<str>]>);
 

@@ -23,7 +23,7 @@ impl CompileError {
         CompileError { id, error_type, msg, position }
     }
 
-    /// Throws the compile error and exits the program
+    /// Prints the compile error to the screen and then exits the program
     pub fn throw<T>(&self) -> T {
         println!("{}", self);
         Self::panic();

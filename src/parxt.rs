@@ -2,7 +2,7 @@ use std::{rc::Rc, fmt::Display};
 
 use crate::{Flext, token_node::Token, cursor::Position};
 
-/// Lexer context for tokenising
+/// Parser context for parsing
 #[derive(Debug, Clone, Copy)]
 pub struct Parxt<'a, TT: Display> {
     pub tokens: &'a [Token<TT>],
