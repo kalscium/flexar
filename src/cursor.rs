@@ -110,20 +110,27 @@ impl Cursor {
     pub fn get_char(&self) -> Option<char> {
         self.get_ln().unwrap()
             .chars()
-            .enumerate()
-            .find(|(i, _)| *i == self.ln_idx as usize -1)
-            .map(|(_, x)| x)
+            .collect::<Box<[char]>>()
+            .get(self.ln_idx as usize -1)
+            .map(|x| *x)
     }
 
     pub fn advance(&mut self) -> Option<char> {
-        if self.ln_idx as usize == self.get_ln().unwrap().len() { // still have to return end of line
+        let line_len = self.get_ln().unwrap().len();
+
+        if line_len == 0 && self.ln_idx == 1 {
             self.ln_idx += 1; return Some('\n');
         }
 
-        if self.ln_idx as usize > self.get_ln().unwrap().len() { // if reached end of line
+        if self.ln_idx as usize == line_len { // still have to return end of line
+            self.ln_idx += 1; return Some('\n');
+        }
+
+        if self.ln_idx as usize > line_len { // if reached end of line
             if self.ln as usize == self.file_contents.0.len() { return None; } // if reached last line
             self.ln += 1;
-            self.ln_idx = 1;
+            self.ln_idx = 0;
+            return self.advance();
         } else {
             self.ln_idx += 1;
         }
