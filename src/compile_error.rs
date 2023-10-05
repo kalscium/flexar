@@ -26,13 +26,10 @@ impl CompileError {
     /// Prints the compile error to the screen and then exits the program
     pub fn throw<T>(&self) -> T {
         println!("{}", self);
-        Self::panic();
+        if cfg!(debug_assertions) {
+            panic!("error thrown in debug mode");
+        }
         std::process::exit(1);
-    }
-
-    #[cfg(debug_assertions)]
-    fn panic() {
-        panic!("error thrown in debug mode");
     }
 }
 
