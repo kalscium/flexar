@@ -6,7 +6,7 @@ The following examples are implementations of each of the aspects of this librar
 ### Imports
 ```rust
 use std::collections::HashMap;
-use flexar::{lext::Lext, flext::Flext, parxt::Parxt, token_node::{Node, TokenToString, self}, compiler_error, cursor::Position};
+use flexar::prelude::*;
 ```
 ## Compiler Errors
 ```rust
