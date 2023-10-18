@@ -1,6 +1,6 @@
 use super::CompileError;
 use std::fmt::{self, Display};
-use soulog::*;
+pub use crate::colour_format;
 
 pub const LINE_LIMIT: u8 = 24;
 
@@ -73,4 +73,40 @@ fn gen_arrw(start_idx: u16, end_idx: u16, msg: &str, start_trim: u16, offset: u1
     out.push_str(&msg.replace('\n', "\x1b[36m\\n\x1b[31m"));
     
     out
+}
+
+/// Used to format text with colour
+/// # Examples
+/// ```rust
+/// colour_format![pink("["), none("Logger"), pink("] "), none("Example Log")];
+/// // outputs: [Logger] Example Log
+/// // but with colour
+/// ```
+#[macro_export]
+macro_rules! colour_format { // Verbose ugly stuff I can't read
+    ($(
+        $(none($none:expr))?
+        $(blue($blue:expr))?
+        $(pink($pink:expr))?
+        $(white($white:expr))?
+        $(green($green:expr))?
+        $(cyan($cyan:expr))?
+        $(red($red:expr))?
+        $(black($black:expr))?
+        $(yellow($yellow:expr))?
+    ),*) => {{
+        let mut string = String::new();
+        $(
+            $(string.push_str("\x1b[0m"); string.push_str($none);)?
+            $(string.push_str("\x1b[34m"); string.push_str($blue);)?
+            $(string.push_str("\x1b[35m"); string.push_str($pink);)?
+            $(string.push_str("\x1b[37m"); string.push_str($white);)?
+            $(string.push_str("\x1b[32m"); string.push_str($green);)?
+            $(string.push_str("\x1b[36m"); string.push_str($cyan);)?
+            $(string.push_str("\x1b[31m"); string.push_str($red);)?
+            $(string.push_str("\x1b[30m"); string.push_str($black);)?
+            $(string.push_str("\x1b[33m"); string.push_str($yellow);)?
+        )* string.push_str("\x1b[0m");
+        string
+    }}
 }
