@@ -1,6 +1,6 @@
 use std::{rc::Rc, fmt::Display};
 
-use crate::{Flext, token_node::Token, cursor::Position};
+use crate::{flext::Flext, token_node::Token, cursor::Position};
 
 /// Parser context for parsing
 #[derive(Debug, Clone, Copy)]
@@ -16,7 +16,7 @@ impl<'a, TT: Display> Parxt<'a, TT> {
         Self {
             tokens,
             idx: 0,
-            done: tokens.len() == 0,
+            done: tokens.is_empty(),
         }
     }
 
@@ -32,7 +32,7 @@ impl<'a, TT: Display> Parxt<'a, TT> {
 
     #[inline]
     fn get_last_pos(&self) -> Position {
-        if self.tokens.len() == 0 { panic!("file's empty, gonna add code to handle that later") }
+        if self.tokens.is_empty() { panic!("file's empty, gonna add code to handle that later") }
         let mut position = self.tokens[self.tokens.len() -1].position.clone();
         let mut end = (*position.1).clone();
         end.ln_idx += 1;

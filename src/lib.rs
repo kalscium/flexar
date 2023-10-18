@@ -326,6 +326,4 @@ pub mod parser_macro;
 pub mod parxt;
 pub mod flext;
 pub mod token_node;
-
-/// Prelude
-pub use flext::Flext;
+pub mod prelude;

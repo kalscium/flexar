@@ -200,7 +200,7 @@ flexar::parser! {
 
 impl ProgramFile {
     pub fn parse(tokens: &[token_node::Token<Token>]) -> Option<Self> {
-        if tokens.len() == 0 { return None }
+        if tokens.is_empty() { return None }
 
         let mut parxt = Parxt::new(tokens);
         let mut stmts = Vec::new();

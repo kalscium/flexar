@@ -112,7 +112,7 @@ impl Cursor {
             .chars()
             .collect::<Box<[char]>>()
             .get(self.ln_idx as usize -1)
-            .map(|x| *x)
+            .copied()
     }
 
     pub fn advance(&mut self) -> Option<char> {

@@ -2,6 +2,7 @@
 #[macro_export]
 macro_rules! parser {
     ([[$node:ty] $parxt:ident: $token:ty] $($func:ident {$($($pats:tt),* => $body:tt$end:tt)*} else $else:ident$else_body:tt;)*) => {
+        #[allow(clippy::diverging_sub_expression)]
         impl $node {
             $(pub fn $func($parxt: &mut $crate::parxt::Parxt<'_, $token>) -> Result<$crate::token_node::Node<$node>, (u8, $crate::compile_error::CompileError)> {
                 let mut last_error: Option<(u8, $crate::compile_error::CompileError)> = None;
