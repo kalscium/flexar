@@ -95,6 +95,12 @@ macro_rules! parser {
         return Ok($crate::token_node::Node::new($start_pos.combine(&pos), Self::$node$(($($data),*))?));
     };
 
+    (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident ($data:tt); | $depth:expr) => {
+        let pos = $parxt.position();
+        *$parxt = $child;
+        return Ok($crate::token_node::Node::new($start_pos.combine(&pos), Self$data));
+    };
+
     (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident [$node:expr]; | $depth:expr) => {
         *$parxt = $child;
         return Ok($node);
