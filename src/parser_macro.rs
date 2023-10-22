@@ -89,10 +89,10 @@ macro_rules! parser {
         })?
     };
 
-    (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident ($node:ident$data:tt); | $depth:expr) => {
+    (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident ($node:ident$($data:tt)?); | $depth:expr) => {
         let pos = $parxt.position();
         *$parxt = $child.clone();
-        return Ok($crate::token_node::Node::new($start_pos.combine(&pos), Self::$node$data));
+        return Ok($crate::token_node::Node::new($start_pos.combine(&pos), Self::$node$($data)?));
     };
 
     (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident ($data:tt); | $depth:expr) => {
