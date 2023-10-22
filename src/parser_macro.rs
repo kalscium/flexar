@@ -81,9 +81,9 @@ macro_rules! parser {
         }
         $(#[allow(unreachable_code)]
         match $last_error {
-            Some((i, _)) if i > $depth => *$parxt = $child, // if things break remove this,
+            Some((i, _)) if i > $depth => *$parxt = $child.clone(), // if things break remove this,
             _ => {
-                *$parxt = $child; // if things break remove this
+                *$parxt = $child.clone(); // if things break remove this
                 $last_error = Some($crate::parser!(@else $start_pos $parxt $else$else_body $depth));
             },
         })?
@@ -91,18 +91,18 @@ macro_rules! parser {
 
     (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident ($node:ident$(($($data:expr),*))?); | $depth:expr) => {
         let pos = $parxt.position();
-        *$parxt = $child;
+        *$parxt = $child.clone();
         return Ok($crate::token_node::Node::new($start_pos.combine(&pos), Self::$node$(($($data),*))?));
     };
 
     (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident ($data:tt); | $depth:expr) => {
         let pos = $parxt.position();
-        *$parxt = $child;
+        *$parxt = $child.clone();
         return Ok($crate::token_node::Node::new($start_pos.combine(&pos), Self$data));
     };
 
     (@body $start_pos:ident $parxt:ident $child:ident $last_error:ident [$node:expr]; | $depth:expr) => {
-        *$parxt = $child;
+        *$parxt = $child.clone();
         return Ok($node);
     };
 
