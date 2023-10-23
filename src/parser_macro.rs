@@ -22,7 +22,7 @@ macro_rules! parser {
         #[allow(unused_parens)]
         match $func(&mut $child) {
             Ok($out) => {
-                $crate::parser!(@req $start_pos $parxt $child $last_error $depth + 1, $($tail),* => $body$end);
+                $crate::parser!(@req $token $start_pos $parxt $child $last_error $depth + 1, $($tail),* => $body$end);
             }
             Err((i, x)) => {
                 let i = i + $depth;
