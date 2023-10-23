@@ -78,7 +78,7 @@ fn gen_arrw(start_idx: u16, end_idx: u16, msg: &str, start_trim: u16, offset: u1
 /// Used to format text with colour
 /// # Examples
 /// ```rust
-/// colour_format![pink("["), none("Logger"), pink("] "), none("Example Log")];
+/// flexar::colour_format![pink("["), none("Logger"), pink("] "), none("Example Log")];
 /// // outputs: [Logger] Example Log
 /// // but with colour
 /// ```

@@ -9,7 +9,7 @@
 ///     /// An example error
 ///     (E001) "example error type": "examle error msg";
 ///     /// Invalid character error
-///     (E002) "invalid character": ((1) "character `", "` is invalid");
+///     (E002) "invalid character": "character `", "` is invalid";
 /// }
 /// ```
 /// ## Throwing Example
@@ -22,38 +22,36 @@ macro_rules! compiler_error {
 
     ([[Define] $name:ident]$(
         $([$($separator:tt)*])?
-        $(#[$about:meta])* ($id:ident) $error_type:literal : $msg:tt
+        $(#[$about:meta])* ($id:ident) $error_type:literal : $($msg:literal),+
     );* $(;)?) => {
         pub trait $name {
             $(
-                $crate::compiler_error!(@trait $(#[$about])* $id $msg);
+                $crate::compiler_error!(@trait $(#[$about])* $id $crate::compiler_error!(@count 1, $($msg)+));
             )*
         }
 
         impl $name for $crate::compile_error::CompileError {
             $(
-                $crate::compiler_error!(@impl $(#[$about])* $id $error_type $msg);
+                $crate::compiler_error!(@impl $(#[$about])* $id $error_type $crate::compiler_error!(@count 1, $($msg)+), $($msg)+);
             )*
         }
     };
 
-    (@impl $(#[$about:meta])* $id:ident $error_type:literal (($len:literal) $($str:literal),*)) => {
-        $(#[$about])*
-        const $id: $crate::compile_error::CompileErrorTemplate<{$len+1}> = $crate::compile_error::CompileErrorTemplate::new($error_type, $crate::compilerr_fmt!(($len) $($str),*));
+    (@count $count:expr, $head:literal) => {
+        $count
     };
 
-    (@impl $(#[$about:meta])* $id:ident $error_type:literal $str:literal) => {
-        $(#[$about])*
-        const $id: $crate::compile_error::CompileErrorTemplate<1> = $crate::compile_error::CompileErrorTemplate::new($error_type, $crate::compilerr_fmt!($str));
+    (@count $count:expr, $head:literal $($tail:literal)+) => {
+        $crate::compiler_error!(@count $count+1, $($tail)+)
     };
 
-    (@trait $(#[$about:meta])* $id:ident (($len:literal) $($str:literal),*)) => {
+    (@impl $(#[$about:meta])* $id:ident $error_type:literal $len:expr, $($str:literal)+) => {
         $(#[$about])*
-        const $id: $crate::compile_error::CompileErrorTemplate<{$len+1}>;
+        const $id: $crate::compile_error::CompileErrorTemplate<{$len}> = $crate::compile_error::CompileErrorTemplate::new($error_type, $crate::compilerr_fmt!(($len) $($str),+));
     };
 
-    (@trait $(#[$about:meta])* $id:ident $str:literal) => {
+    (@trait $(#[$about:meta])* $id:ident $len:expr) => {
         $(#[$about])*
-        const $id: $crate::compile_error::CompileErrorTemplate<1>;
+        const $id: $crate::compile_error::CompileErrorTemplate<{$len}>;
     };
 }

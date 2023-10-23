@@ -15,11 +15,7 @@ impl<const N: usize> CompileErrFormatter<N> {
 
 #[macro_export]
 macro_rules! compilerr_fmt {
-    ($str:literal) => {
-        $crate::compile_error::compile_error_format::CompileErrFormatter::<1>([$str])
-    };
-
-    (($len:literal) $($str:literal),*) => {
-        $crate::compile_error::compile_error_format::CompileErrFormatter::<{$len+1}>([$($str),*])
+    (($len:expr) $($str:literal),*) => {
+        $crate::compile_error::compile_error_format::CompileErrFormatter::<{$len}>([$($str),*])
     };
 }

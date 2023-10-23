@@ -31,17 +31,17 @@
 //!
 //! flexar::compiler_error! {
 //!     [[Define] Errors]
-//!     (E001) "unexpected character": ((1) "character `", "` is unexpected");
+//!     (E001) "unexpected character": "character `", "` is unexpected";
 //!     (E002) "string not closed": "expected `\"` to close string";
-//!     (E003) "expected number": ((1) "expected number, found `", "`.");
-//!     (E004) "expected an expr": ((1) "expected expr, found `", "`.");
-//!     (E005) "expected `+` or `-` in binary operation": ((1) "expected `+` or `-`, found `", "`.");
-//!     (E006) "unexpected token": ((1) "unexpected token `", "`.");
+//!     (E003) "expected number": "expected number, found `", "`.";
+//!     (E004) "expected an expr": "expected expr, found `", "`.";
+//!     (E005) "expected `+` or `-` in binary operation": "expected `+` or `-`, found `", "`.";
+//!     (E006) "unexpected token": "unexpected token `", "`.";
 //!     (E007) "unclosed parentheses": "expected `)` to close parentheses";
-//!     (E008) "expected identifier in `let` statement": ((1) "expected ident, found `", "`.");
-//!     (E009) "expected `=` in `let` statement": ((1) "expected `=`, found `", "`.");
-//!     (E010) "expected one of `;`, `+`, `-`, `/` or `*`.": ((1) "expected `;` or operation, found `", "`.");
-//!     (RT001) "non-existant varible": ((1) "varible `", "` doesn't exist");
+//!     (E008) "expected identifier in `let` statement": "expected ident, found `", "`.";
+//!     (E009) "expected `=` in `let` statement": "expected `=`, found `", "`.";
+//!     (E010) "expected one of `;`, `+`, `-`, `/` or `*`.": "expected `;` or operation, found `", "`.";
+//!     (RT001) "non-existant varible": "varible `", "` doesn't exist";
 //! }
 //!
 //! //////////////////////////
@@ -167,25 +167,25 @@
 //! flexar::parser! {
 //!     [[Number] parxt: Token]
 //!     parse {
-//!         (Token::Ident(x)) => (Get(x.clone()));
-//!         (Token::Plus), [number: Number::parse] => [number];
-//!         (Token::Minus), [number: Number::parse] => (Neg(Box::new(number)));
-//!         (Token::Int(x)) => (Int(*x));
-//!         (Token::Float(x)) => (Float(*x));
-//!         (Token::LParen) => {
+//!         (Ident(x)) => (Get(x.clone()));
+//!         (Plus), [number: Number::parse] => [number];
+//!         (Minus), [number: Number::parse] => (Neg(Box::new(number)));
+//!         (Int(x)) => (Int(*x));
+//!         (Float(x)) => (Float(*x));
+//!         (LParen) => {
 //!             [expr: Expr::parse] => {
-//!                 (Token::RParen) => (Expr(Box::new(expr)));
-//!             } (else Err((E007, parxt.position())))
+//!                 (RParen) => (Expr(Box::new(expr)));
+//!             } (else Err(E007))
 //!         };
-//!     } else Err((E003, parxt.position()) parxt.current_token());
+//!     } else Err(E003: parxt.current_token());
 //! }
 //!
 //! flexar::parser! {
 //!     [[Factor] parxt: Token]
 //!     parse {
 //!         [left: Number::parse] => {
-//!             (Token::Mul), [right: Factor::parse] => (Mul(left, Box::new(right)));
-//!             (Token::Div), [right: Factor::parse] => (Div(left, Box::new(right)));
+//!             (Mul), [right: Factor::parse] => (Mul(left, Box::new(right)));
+//!             (Div), [right: Factor::parse] => (Div(left, Box::new(right)));
 //!         } (else Ok(Factor::Number(left)))
 //!     } else Other(Number Number::parse(parxt));
 //! }
@@ -194,31 +194,31 @@
 //!     [[Expr] parxt: Token]
 //!     parse {
 //!         [left: Factor::parse] => {
-//!             (Token::Plus), [right: Expr::parse] => (Plus(left, Box::new(right)));
-//!             (Token::Minus), [right: Expr::parse] => (Minus(left, Box::new(right)));
+//!             (Plus), [right: Expr::parse] => (Plus(left, Box::new(right)));
+//!             (Minus), [right: Expr::parse] => (Minus(left, Box::new(right)));
 //!         } (else Ok(Expr::Factor(left)))
-//!     } else Err((E004, parxt.position()) parxt.current_token());
+//!     } else Err(E004: parxt.current_token());
 //! }
 //!
 //! flexar::parser! {
 //!     [[Stmt] parxt: Token]
 //!     parse {
 //!         [expr: Expr::parse] => (Expr(expr));
-//!         (Token::Let) => {
-//!             (Token::Ident(ident)) => {
-//!                 (Token::EQ), [expr: Expr::parse] => (Let(ident.clone(), expr));
-//!             } (else Err((E009, parxt.position()) parxt.current_token()))
-//!         } (else Err((E008, parxt.position()) parxt.current_token()))
-//!     } else Err((E006, parxt.position()) parxt.current_token());
+//!         (Let) => {
+//!             (Ident(ident)) => {
+//!                 (EQ), [expr: Expr::parse] => (Let(ident.clone(), expr));
+//!             } (else Err(E009: parxt.current_token()))
+//!         } (else Err(E008: parxt.current_token()))
+//!     } else Err(E006: parxt.current_token());
 //! }
 //!
 //! flexar::parser! {
 //!     [[ProgramFile] parxt: Token]
 //!     single {
 //!         [stmt: Stmt::parse] => {
-//!             (Token::Semi) => (Single(stmt));
-//!         } (else Err((E010, parxt.position()) parxt.current_token()))
-//!     } else Err((E006, parxt.position()) parxt.current_token());
+//!             (Semi) => (Single(stmt));
+//!         } (else Err(E010: parxt.current_token()))
+//!     } else Err(E006: parxt.current_token());
 //! }
 //!
 //! impl ProgramFile {
@@ -317,7 +317,7 @@
 //!         0f32 // means nothing
 //!     }
 //! }
-
+//! 
 pub mod compile_error;
 pub mod cursor;
 pub mod lext;
