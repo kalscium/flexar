@@ -56,7 +56,7 @@ impl MutCursor {
 }
 
 /// A full position of a string of characters in a file
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub struct Position(pub Rc<Cursor>, pub Rc<Cursor>);
 
 impl Position {
@@ -75,7 +75,7 @@ impl From<Cursor> for Position {
 }
 
 /// Tracks the position of a character in a file
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct Cursor {
     pub file_name: Rc<String>,
     file_contents: Rc<FileContents>,
@@ -152,7 +152,7 @@ impl Cursor {
 }
 
 /// Holds the contents of a file
-#[derive(Debug)]
+#[derive(Debug, Hash)]
 pub struct FileContents(pub Box<[Box<str>]>);
 
 impl FileContents {
