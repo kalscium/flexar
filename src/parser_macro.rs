@@ -115,6 +115,10 @@ macro_rules! parser {
         return Ok($crate::token_node::Node::new($start_pos.combine(&$parxt.position()), $else));
     };
 
+    (@else $start_pos:ident $parxt:ident Raw($raw:expr) $depth:expr) => {
+        return $raw;
+    };
+
     (@else $start_pos:ident $parxt:ident Other($variant:ident $else:expr) $depth:expr) => {
         match $else {
             Ok(x) => return Ok($crate::token_node::Node::new($start_pos.combine(&x.position), Self::$variant(x))),
