@@ -311,11 +311,12 @@ fn main() {
         let time = Instant::now();
     let node = ProgramFile::parse(&tokens);
         print_time("Parsing completed in", time);
-    let node = match node {
-        Some(x) => x,
-        None => return,
-    };
-
+        let node = match node {
+            Some(x) => x,
+            None => return,
+        };
+    println!("{node:#?}");
+        
     // Interpreter
         let time = Instant::now();
     println!("\n\x1b[34m=== Program output ===\x1b[0m");

@@ -56,7 +56,7 @@ impl MutCursor {
 }
 
 /// A full position of a string of characters in a file
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Clone, Hash, PartialEq, Eq)]
 pub struct Position(pub Rc<Cursor>, pub Rc<Cursor>);
 
 impl Position {
@@ -71,6 +71,17 @@ impl From<Cursor> for Position {
     fn from(cursor: Cursor) -> Self {
         let cursor = Rc::new(cursor);
         Self(cursor.clone(), cursor)
+    }
+}
+
+impl std::fmt::Debug for Position {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Position")
+            .field("start_ln", &self.0.ln)
+            .field("end_ln", &self.1.ln)
+            .field("start_idx", &self.0.ln_idx)
+            .field("end_idx", &self.1.ln_idx)
+            .finish()
     }
 }
 
@@ -152,12 +163,18 @@ impl Cursor {
 }
 
 /// Holds the contents of a file
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Hash, PartialEq, Eq)]
 pub struct FileContents(pub Box<[Box<str>]>);
 
 impl FileContents {
     #[inline]
     pub fn new(contents: &str) -> Self {
         Self(contents.split('\n').map(|x| x.into()).collect())
+    }
+}
+
+impl std::fmt::Debug for FileContents {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<file contents>")
     }
 }
