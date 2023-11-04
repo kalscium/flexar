@@ -315,7 +315,6 @@ fn main() {
             Some(x) => x,
             None => return,
         };
-    println!("{node:#?}");
         
     // Interpreter
         let time = Instant::now();

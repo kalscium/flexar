@@ -112,7 +112,7 @@ macro_rules! parser {
     };
 
     (@else $start_pos:ident $parxt:ident Ok($else:expr) $depth:expr) => {
-        return Ok($crate::token_node::Node::new($start_pos.combine(&$parxt.position()), $else));
+        return Ok($crate::token_node::Node::new($start_pos, $else));
     };
 
     (@else $start_pos:ident $parxt:ident Raw($raw:expr) $depth:expr) => {
