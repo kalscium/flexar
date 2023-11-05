@@ -65,6 +65,23 @@ impl Position {
     pub fn combine(&self, other: &Position) -> Self {
         Self(self.0.clone(), other.1.clone())
     }
+
+    #[inline]
+    pub fn new_oneline(file_name: &str, line: &str, range: Option<(u16, u16)>) -> Self {
+        let mut start = Cursor::new(file_name.to_string(), line);
+        let mut end = start.clone();
+
+        start.ln_idx = match range {
+            Some(x) => x.0,
+            None => 1,
+        };
+        end.ln_idx = match range {
+            Some(x) => x.1,
+            None => line.len() as u16,
+        };
+
+        Position(Rc::new(start), Rc::new(end))
+    }
 }
 
 impl From<Cursor> for Position {
