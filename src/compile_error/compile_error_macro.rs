@@ -47,7 +47,7 @@ macro_rules! compiler_error {
 
     (@impl $(#[$about:meta])* $id:ident $error_type:literal $len:expr, $($str:literal)+) => {
         $(#[$about])*
-        const $id: $crate::compile_error::CompileErrorTemplate<{$len}> = $crate::compile_error::CompileErrorTemplate::new($error_type, $crate::compilerr_fmt!(($len) $($str),+));
+        const $id: $crate::compile_error::CompileErrorTemplate<{$len}> = $crate::compile_error::CompileErrorTemplate::new($error_type, $crate::compilerr_fmt!(($len) $id $($str),+));
     };
 
     (@trait $(#[$about:meta])* $id:ident $len:expr) => {
