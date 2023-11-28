@@ -70,7 +70,7 @@ macro_rules! lexer {
         (@recur-sect1 $label:tt $out:ident $lext:ident $child:ident $char:tt) => {
             if let Some(current) = $child.current {
                 if $crate::lexer!(@value current $char) {
-                    $lext = $child;
+                    $lext = $child.clone();
                     $lext.advance();
                     break $label $crate::token_node::Token {
                         position: $lext.rposition(),
@@ -121,7 +121,7 @@ macro_rules! lexer {
     };
 
     (@det $child:ident $lext:ident $label:tt done $var:ident ($($spec:expr)?)) => {
-        $lext = $child;
+        $lext = $child.clone();
         break $label $crate::token_node::Token {
             position: $lext.rposition(),
             token_type: Self::$var$(($spec))?,
@@ -129,7 +129,7 @@ macro_rules! lexer {
     };
 
     (@det $child:ident $lext:ident $label:tt update: ()) => {
-        $lext = $child;
+        $lext = $child.clone();
     };
 
     (@det $child:ident $lext:ident $label:tt advance: $current:ident) => {
