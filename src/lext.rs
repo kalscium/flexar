@@ -1,6 +1,7 @@
 use crate::{cursor::{MutCursor, Cursor}, flext::Flext};
 
 /// Lexer context for tokenising
+#[derive(Debug, Clone)]
 pub struct Lext {
     pub cursor: MutCursor,
     pub current: Option<char>,
