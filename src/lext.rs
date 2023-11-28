@@ -9,7 +9,7 @@ pub struct Lext {
 impl Lext {
     #[inline]
     pub fn new(file_name: String, contents: &str) -> Self {
-        let cursor = MutCursor::new(Cursor::new(file_name, contents));
+        let cursor = MutCursor::new(Cursor::new(file_name, contents.trim_start_matches('\n')));
         let current = cursor.pos_end.get_char();
         Self {
             cursor,
