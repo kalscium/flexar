@@ -1,4 +1,4 @@
-use std::{fs, time::Instant, collections::HashMap};
+use std::{fs, time::Instant, collections::HashMap, fmt::Debug};
 use flexar::prelude::*;
 
 //////////////////////////
@@ -235,7 +235,7 @@ impl ProgramFile {
     }
 }
 
-impl<N: Visit> Visit for Node<N> {
+impl<N: Visit + Debug> Visit for Node<N> {
     fn visit(&self, visit_ctx: &mut VisitCtx) -> f32 {
         visit_ctx.1 = self.position.clone();
         self.node.visit(visit_ctx)
