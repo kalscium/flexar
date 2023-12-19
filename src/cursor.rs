@@ -94,12 +94,13 @@ impl From<Cursor> for Position {
 impl std::fmt::Debug for Position {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
-            f, "<position: {}:{}-{}:{}-{}>",
+            f, "<position: {}:{}:{} - {}:{}:{}>",
             self.0.file_name,
             self.0.ln,
-            self.1.ln,
             self.0.ln_idx,
-            self.0.ln_idx
+            self.1.file_name,
+            self.1.ln,
+            self.1.ln_idx+1,
         )
     }
 }
