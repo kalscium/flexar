@@ -1,6 +1,9 @@
 # flexar
 An extremely flexible lexer/parser (get it?) for writing your own programming language
 
+## Important Note
+Just use [`chumsky`](https://github.com/zesterer/chumsky) instead, it's better and more mature than this project and has essentially everything that I had hoped for `flexar`.
+
 # Examples
 The following examples are implementations of each of the aspects of this library; all working together to create a simple math interpreter with support for varibles.
 ### Imports
